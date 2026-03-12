@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Admin users for the system
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin") // admin, superadmin
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// News/Articles
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  image       String?
+  category    String   @default("umum") // umum, pendidikan, kegiatan, pengumuman
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  viewCount   Int      @default(0)
+  authorId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Photo Gallery
+model Gallery {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  image       String?
+  category    String   @default("umum") // umum, kegiatan, prestasi, fasilitas
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Students (for PPDB management)
+model Student {
+  id              String   @id @default(cuid())
+  // Data Pribadi
+  nisn            String?
+  nik             String?
+  name            String
+  placeOfBirth    String?
+  dateOfBirth     String?
+  gender          String?  // L, P
+  religion        String?  // Islam, Kristen, Katolik, Hindu, Buddha, Konghucu
+  address         String?
+  phone           String?
+  email           String?
+  // Data Orang Tua
+  fatherName      String?
+  fatherJob       String?
+  fatherPhone     String?
+  motherName      String?
+  motherJob       String?
+  motherPhone     String?
+  guardianName    String?
+  guardianJob     String?
+  guardianPhone   String?
+  // Data Pendidikan
+  schoolOrigin    String?
+  schoolAddress   String?
+  graduationYear  String?
+  // Data PPDB
+  registrationId  String   @unique
+  unitType        String?  // ponpes, mi, mts, ma
+  status          String   @default("pending") // pending, accepted, rejected
+  documents       String?  // JSON string for document URLs
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Contacts/Inquiries
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  status    String   @default("unread") // unread, read, replied
+  reply     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Website Settings
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      String   @default("text") // text, textarea, json, image
+  group     String   @default("general") // general, profile, contact, social
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Educational Units
+model EducationUnit {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   @unique // ponpes, mi, mts, ma
+  description String?
+  address     String?
+  phone       String?
+  email       String?
+  image       String?
+  facilities  String?  // JSON string
+  programs    String?  // JSON string
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Scholarships
+model Scholarship {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  requirements String?
+  benefits    String?
+  deadline    String?
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Donations
+model Donation {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  amount    Float
+  message   String?
+  status    String   @default("pending") // pending, confirmed, cancelled
+  paymentMethod String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
