@@ -361,9 +361,14 @@ export default function Home() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl">
-              ي
-            </div>
+            <div className="w-10 h-10 relative rounded-lg overflow-hidden bg-white">
+  <Image
+    src="/images/logo-yayasan.png"
+    alt="Logo Yayasan Al Mujahidin"
+    fill
+    className="object-contain"
+  />
+</div>
             <div className="hidden sm:block">
               <h1 className="font-bold text-lg leading-tight">Yayasan Al Mujahidin</h1>
               <p className="text-xs text-muted-foreground">Kalimantan Timur</p>
@@ -566,9 +571,14 @@ export default function Home() {
               >
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-24 h-24 bg-primary rounded-2xl flex items-center justify-center text-primary-foreground font-bold text-5xl mx-auto mb-4">
-                      ي
-                    </div>
+                    <div className="w-24 h-24 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
+  <Image
+    src="/images/logo-yayasan.png"
+    alt="Logo Yayasan Al Mujahidin"
+    fill
+    className="object-contain p-2"
+  />
+</div>
                     <p className="text-muted-foreground">Yayasan Al Mujahidin Kaltim</p>
                   </div>
                 </div>
@@ -1238,9 +1248,14 @@ export default function Home() {
             {/* About */}
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-xl font-bold">
-                  ي
-                </div>
+                <div className="w-10 h-10 relative rounded-lg overflow-hidden bg-white">
+  <Image
+    src="/images/logo-yayasan.png"
+    alt="Logo Yayasan Al Mujahidin"
+    fill
+    className="object-contain"
+  />
+</div>
                 <div>
                   <h3 className="font-bold">Yayasan Al Mujahidin</h3>
                   <p className="text-sm opacity-80">Kalimantan Timur</p>
