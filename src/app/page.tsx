@@ -362,13 +362,13 @@ export default function Home() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 relative rounded-lg overflow-hidden bg-white">
-  <Image
-    src="/images/logo-yayasan.png"
-    alt="Logo Yayasan Al Mujahidin"
-    fill
-    className="object-contain"
-  />
-</div>
+              <Image
+                src="/images/logo-yayasan.png"
+                alt="Logo Yayasan Al Mujahidin"
+                fill
+                className="object-contain"
+              />
+            </div>
             <div className="hidden sm:block">
               <h1 className="font-bold text-lg leading-tight">Yayasan Al Mujahidin</h1>
               <p className="text-xs text-muted-foreground">Kalimantan Timur</p>
@@ -579,7 +579,7 @@ export default function Home() {
     className="object-contain p-2"
   />
 </div>
-                    <p className="text-muted-foreground">Yayasan Al Mujahidin Kaltim</p>
+                   <p className="text-muted-foreground">Yayasan Al Mujahidin Kaltim</p>
                   </div>
                 </div>
               </motion.div>
@@ -656,29 +656,35 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                    <CardHeader>
-                      <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
-                        {getUnitIcon(unit.type)}
-                      </div>
-                      <CardTitle className="text-lg">{unit.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                        {unit.description}
-                      </p>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-foreground">Program:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {JSON.parse(unit.programs || '[]').slice(0, 3).map((prog: string, i: number) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {prog}
-                            </Badge>
-                          ))}
+                  <Link href={`/unit-pendidikan/${unit.type}`}>
+                    <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
+                      <CardHeader>
+                        <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          {getUnitIcon(unit.type)}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        <CardTitle className="text-lg group-hover:text-primary transition-colors">{unit.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                          {unit.description}
+                        </p>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-foreground">Program:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {JSON.parse(unit.programs || '[]').slice(0, 3).map((prog: string, i: number) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {prog}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="mt-4 flex items-center text-primary text-sm font-medium">
+                          <span>Lihat Detail</span>
+                          <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 </motion.div>
               ))}
             </div>
@@ -1249,13 +1255,13 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 relative rounded-lg overflow-hidden bg-white">
-  <Image
-    src="/images/logo-yayasan.png"
-    alt="Logo Yayasan Al Mujahidin"
-    fill
-    className="object-contain"
-  />
-</div>
+                  <Image
+                    src="/images/logo-yayasan.png"
+                    alt="Logo Yayasan Al Mujahidin"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
                 <div>
                   <h3 className="font-bold">Yayasan Al Mujahidin</h3>
                   <p className="text-sm opacity-80">Kalimantan Timur</p>
