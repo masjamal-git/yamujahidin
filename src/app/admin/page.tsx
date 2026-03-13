@@ -141,10 +141,7 @@ export default function AdminLoginPage() {
               )}
             </Button>
           </form>
-          <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
-            <p>Demo login:</p>
-            <p className="font-mono">admin@yalmuja.sch.id / admin123</p>
-          </div>
+          
         </CardContent>
       </Card>
     </div>
