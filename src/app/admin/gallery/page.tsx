@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Plus, Search, Trash2, Image as ImageIcon, MoreHorizontal } from 'lucide-react'
+import { useEffect, useState, useRef } from 'react'
+import { Plus, Search, Trash2, Image as ImageIcon, MoreHorizontal, Upload, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
@@ -50,6 +50,9 @@ export default function AdminGalleryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [newGallery, setNewGallery] = useState({
     title: '',
     description: '',
@@ -73,6 +76,53 @@ export default function AdminGalleryPage() {
       toast.error('Gagal mengambil data galeri')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Tipe file tidak didukung. Gunakan JPG, PNG, GIF, atau WebP')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran file terlalu besar. Maksimal 5MB')
+      return
+    }
+
+    setIsUploading(true)
+
+    try {
+      // Convert to base64 directly
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string
+        setImagePreview(base64)
+        setNewGallery({ ...newGallery, image: base64 })
+        setIsUploading(false)
+      }
+      reader.onerror = () => {
+        toast.error('Gagal membaca file')
+        setIsUploading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch {
+      toast.error('Gagal memproses gambar')
+      setIsUploading(false)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setImagePreview(null)
+    setNewGallery({ ...newGallery, image: '' })
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -103,6 +153,11 @@ export default function AdminGalleryPage() {
       toast.error('Judul harus diisi')
       return
     }
+
+    if (!newGallery.image) {
+      toast.error('Gambar harus diupload')
+      return
+    }
     
     try {
       const res = await fetch('/api/admin/gallery', {
@@ -118,6 +173,7 @@ export default function AdminGalleryPage() {
         setGallery([data.data, ...gallery])
         setIsAddDialogOpen(false)
         setNewGallery({ title: '', description: '', image: '', category: 'umum' })
+        setImagePreview(null)
       } else {
         toast.error('Gagal menambahkan gambar')
       }
@@ -153,9 +209,9 @@ export default function AdminGalleryPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="border-0 shadow-none">
+        <CardContent className="p-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -170,8 +226,7 @@ export default function AdminGalleryPage() {
               <span>{filteredGallery.length} gambar</span>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+          
           {isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => (
@@ -179,9 +234,17 @@ export default function AdminGalleryPage() {
               ))}
             </div>
           ) : filteredGallery.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-12 border-2 border-dashed rounded-lg">
               <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
               <p className="text-muted-foreground">Tidak ada gambar ditemukan</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setIsAddDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Gambar Pertama
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -246,15 +309,68 @@ export default function AdminGalleryPage() {
       </AlertDialog>
 
       {/* Add Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        setIsAddDialogOpen(open)
+        if (!open) {
+          setImagePreview(null)
+          setNewGallery({ title: '', description: '', image: '', category: 'umum' })
+        }
+      }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Tambah Gambar Baru</DialogTitle>
             <DialogDescription>
-              Masukkan informasi gambar yang akan ditambahkan
+              Upload gambar dan isi informasi yang diperlukan
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Image Upload Area */}
+            <div className="space-y-2">
+              <Label>Gambar *</Label>
+              {!imagePreview ? (
+                <div 
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">Memproses...</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Klik untuk upload gambar
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        JPG, PNG, GIF, WebP (max 5MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={handleRemoveImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="title">Judul *</Label>
               <Input
@@ -271,15 +387,7 @@ export default function AdminGalleryPage() {
                 placeholder="Deskripsi singkat..."
                 value={newGallery.description}
                 onChange={(e) => setNewGallery({ ...newGallery, description: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="image">URL Gambar</Label>
-              <Input
-                id="image"
-                placeholder="https://example.com/image.jpg"
-                value={newGallery.image}
-                onChange={(e) => setNewGallery({ ...newGallery, image: e.target.value })}
+                rows={3}
               />
             </div>
             <div className="space-y-2">
@@ -301,10 +409,16 @@ export default function AdminGalleryPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsAddDialogOpen(false)
+              setImagePreview(null)
+              setNewGallery({ title: '', description: '', image: '', category: 'umum' })
+            }}>
               Batal
             </Button>
-            <Button onClick={handleAdd}>Simpan</Button>
+            <Button onClick={handleAdd} disabled={!newGallery.image || !newGallery.title}>
+              Simpan
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
