@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-// Default education units data
+// Default education units data with images
 const defaultUnits: Record<string, any> = {
   ponpes: {
     id: 'default-ponpes',
@@ -12,8 +12,23 @@ const defaultUnits: Record<string, any> = {
     phone: '(0541) 123456',
     email: 'ponpes@yalmuja.sch.id',
     image: null,
-    facilities: '["Masjid", "Asrama Putra", "Asrama Putri", "Ruang Kelas", "Perpustakaan", "Lapangan Olahraga", "Dapur Bersama", "Klinik Kesehatan"]',
-    programs: '["Tahfidz Al-Quran", "Kajian Kitab Kuning", "Bahasa Arab", "Bahasa Inggris", "Pengajian Malam"]',
+    facilities: JSON.stringify([
+      { name: 'Masjid', image: '' },
+      { name: 'Asrama Putra', image: '' },
+      { name: 'Asrama Putri', image: '' },
+      { name: 'Ruang Kelas', image: '' },
+      { name: 'Perpustakaan', image: '' },
+      { name: 'Lapangan Olahraga', image: '' },
+      { name: 'Dapur Bersama', image: '' },
+      { name: 'Klinik Kesehatan', image: '' }
+    ]),
+    programs: JSON.stringify([
+      { name: 'Tahfidz Al-Quran', image: '' },
+      { name: 'Kajian Kitab Kuning', image: '' },
+      { name: 'Bahasa Arab', image: '' },
+      { name: 'Bahasa Inggris', image: '' },
+      { name: 'Pengajian Malam', image: '' }
+    ]),
     isActive: true,
   },
   mi: {
@@ -25,8 +40,21 @@ const defaultUnits: Record<string, any> = {
     phone: '(0541) 123457',
     email: 'mi@yalmuja.sch.id',
     image: null,
-    facilities: '["Ruang Kelas Ber-AC", "Perpustakaan", "Laboratorium Komputer", "Lapangan Bermain", "Kantin Sehat", "UKS"]',
-    programs: '["Kurikulum Nasional", "Tahfidz Al-Quran", "Bahasa Arab", "Praktek Ibadah", "Ekstrakurikuler"]',
+    facilities: JSON.stringify([
+      { name: 'Ruang Kelas Ber-AC', image: '' },
+      { name: 'Perpustakaan', image: '' },
+      { name: 'Laboratorium Komputer', image: '' },
+      { name: 'Lapangan Bermain', image: '' },
+      { name: 'Kantin Sehat', image: '' },
+      { name: 'UKS', image: '' }
+    ]),
+    programs: JSON.stringify([
+      { name: 'Kurikulum Nasional', image: '' },
+      { name: 'Tahfidz Al-Quran', image: '' },
+      { name: 'Bahasa Arab', image: '' },
+      { name: 'Praktek Ibadah', image: '' },
+      { name: 'Ekstrakurikuler', image: '' }
+    ]),
     isActive: true,
   },
   mts: {
@@ -38,8 +66,21 @@ const defaultUnits: Record<string, any> = {
     phone: '(0541) 123458',
     email: 'mts@yalmuja.sch.id',
     image: null,
-    facilities: '["Ruang Kelas Ber-AC", "Laboratorium IPA", "Laboratorium Komputer", "Perpustakaan", "Masjid", "Lapangan Olahraga"]',
-    programs: '["Kurikulum Nasional", "Tahfidz Al-Quran", "Bahasa Arab & Inggris", "IPA & IPS", "Ekstrakurikuler Lengkap"]',
+    facilities: JSON.stringify([
+      { name: 'Ruang Kelas Ber-AC', image: '' },
+      { name: 'Laboratorium IPA', image: '' },
+      { name: 'Laboratorium Komputer', image: '' },
+      { name: 'Perpustakaan', image: '' },
+      { name: 'Masjid', image: '' },
+      { name: 'Lapangan Olahraga', image: '' }
+    ]),
+    programs: JSON.stringify([
+      { name: 'Kurikulum Nasional', image: '' },
+      { name: 'Tahfidz Al-Quran', image: '' },
+      { name: 'Bahasa Arab & Inggris', image: '' },
+      { name: 'IPA & IPS', image: '' },
+      { name: 'Ekstrakurikuler Lengkap', image: '' }
+    ]),
     isActive: true,
   },
   ma: {
@@ -51,20 +92,34 @@ const defaultUnits: Record<string, any> = {
     phone: '(0541) 123459',
     email: 'ma@yalmuja.sch.id',
     image: null,
-    facilities: '["Ruang Kelas Ber-AC", "Laboratorium IPA", "Laboratorium Komputer", "Laboratorium Bahasa", "Perpustakaan", "Masjid", "Aula Serbaguna"]',
-    programs: '["Jurusan IPA", "Jurusan IPS", "Jurusan Keagamaan", "Tahfidz Al-Quran", "Persiapan PTN", "Bahasa Arab & Inggris"]',
+    facilities: JSON.stringify([
+      { name: 'Ruang Kelas Ber-AC', image: '' },
+      { name: 'Laboratorium IPA', image: '' },
+      { name: 'Laboratorium Komputer', image: '' },
+      { name: 'Laboratorium Bahasa', image: '' },
+      { name: 'Perpustakaan', image: '' },
+      { name: 'Masjid', image: '' },
+      { name: 'Aula Serbaguna', image: '' }
+    ]),
+    programs: JSON.stringify([
+      { name: 'Jurusan IPA', image: '' },
+      { name: 'Jurusan IPS', image: '' },
+      { name: 'Jurusan Keagamaan', image: '' },
+      { name: 'Tahfidz Al-Quran', image: '' },
+      { name: 'Persiapan PTN', image: '' },
+      { name: 'Bahasa Arab & Inggris', image: '' }
+    ]),
     isActive: true,
   },
 }
 
+// GET /api/units/[type] - Get education unit by type
 export async function GET(
   request: NextRequest,
--  { params }: { params: { type: string } }
-+  { params }: { params: Promise<{ type: string }> }
+  { params }: { params: Promise<{ type: string }> }
 ) {
   try {
--    const { type } = params
-+    const { type } = await params
+    const { type } = await params
     
     // Validate type
     if (!type || !['ponpes', 'mi', 'mts', 'ma'].includes(type)) {
@@ -81,7 +136,34 @@ export async function GET(
       })
 
       if (unit) {
-        return NextResponse.json({ success: true, data: unit })
+        // Migrate old format to new format if needed
+        let facilities = unit.facilities
+        let programs = unit.programs
+        
+        // Check if facilities is old format (array of strings)
+        if (facilities) {
+          try {
+            const parsed = JSON.parse(facilities)
+            if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+              facilities = JSON.stringify(parsed.map((f: string) => ({ name: f, image: '' })))
+            }
+          } catch {}
+        }
+        
+        // Check if programs is old format (array of strings)
+        if (programs) {
+          try {
+            const parsed = JSON.parse(programs)
+            if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+              programs = JSON.stringify(parsed.map((p: string) => ({ name: p, image: '' })))
+            }
+          } catch {}
+        }
+        
+        return NextResponse.json({ 
+          success: true, 
+          data: { ...unit, facilities, programs }
+        })
       }
     } catch (dbError) {
       console.error('Database error, using default data:', dbError)
