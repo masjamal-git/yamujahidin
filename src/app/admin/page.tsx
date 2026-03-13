@@ -100,7 +100,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@yalmuja.sch.id"
+                  placeholder="masjamal@yalmuja.sch.id"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
