@@ -455,47 +455,61 @@ export default function AdminUnitsPage() {
                     </div>
                   </div>
 
-                  {/* Main Image */}
+                  {/* Main Image Upload */}
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <ImageIcon className="h-4 w-4" />
                       Gambar Utama Unit
                     </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="URL gambar atau upload file"
-                        value={units[unitType.value]?.image || ''}
-                        onChange={(e) => updateUnit(unitType.value, 'image', e.target.value)}
-                      />
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => triggerUpload(unitType.value, 'image')}
-                        disabled={uploadingField === `${unitType.value}-image-main`}
-                      >
-                        {uploadingField === `${unitType.value}-image-main` ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                    {units[unitType.value]?.image && (
-                      <div className="mt-2 relative aspect-video rounded-lg overflow-hidden bg-muted max-w-md">
+                    
+                    {units[unitType.value]?.image ? (
+                      <div className="relative aspect-video rounded-lg overflow-hidden bg-muted max-w-md border">
                         <img 
                           src={units[unitType.value]?.image || ''} 
                           alt="Preview" 
                           className="w-full h-full object-cover"
                         />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2"
-                          onClick={() => updateUnit(unitType.value, 'image', '')}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => triggerUpload(unitType.value, 'image')}
+                            disabled={uploadingField === `${unitType.value}-image-main`}
+                          >
+                            {uploadingField === `${unitType.value}-image-main` ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => updateUnit(unitType.value, 'image', '')}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors max-w-md"
+                        onClick={() => triggerUpload(unitType.value, 'image')}
+                      >
+                        {uploadingField === `${unitType.value}-image-main` ? (
+                          <>
+                            <Loader2 className="h-10 w-10 text-muted-foreground mb-2 animate-spin" />
+                            <p className="text-sm text-muted-foreground">Mengupload...</p>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium">Klik untuk upload gambar</p>
+                            <p className="text-xs text-muted-foreground mt-1">PNG, JPG, JPEG (Maks. 5MB)</p>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -519,64 +533,81 @@ export default function AdminUnitsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     {units[unitType.value]?.programs.map((program, index) => (
-                      <div key={index} className="flex gap-4 p-4 border rounded-lg items-start">
-                        <div className="flex-1 space-y-2">
-                          <Label>Nama Program</Label>
-                          <Input
-                            placeholder="Nama program"
-                            value={program.name}
-                            onChange={(e) => updateProgram(unitType.value, index, 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <Label>Gambar Program</Label>
-                          <div className="flex gap-2">
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex gap-4 items-start">
+                          <div className="flex-1 space-y-2">
+                            <Label>Nama Program</Label>
                             <Input
-                              placeholder="URL gambar"
-                              value={program.image}
-                              onChange={(e) => updateProgram(unitType.value, index, 'image', e.target.value)}
+                              placeholder="Nama program"
+                              value={program.name}
+                              onChange={(e) => updateProgram(unitType.value, index, 'name', e.target.value)}
                             />
-                            <Button 
-                              type="button" 
-                              variant="outline"
-                              onClick={() => triggerUpload(unitType.value, 'programs', index)}
-                              disabled={uploadingField === `${unitType.value}-programs-${index}`}
-                            >
-                              {uploadingField === `${unitType.value}-programs-${index}` ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Upload className="h-4 w-4" />
-                              )}
-                            </Button>
                           </div>
-                          {program.image && (
-                            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted max-w-xs">
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            className="text-destructive hover:text-destructive mt-6"
+                            onClick={() => removeProgram(unitType.value, index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-4 space-y-2">
+                          <Label>Gambar Program</Label>
+                          {program.image ? (
+                            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted max-w-xs border">
                               <img 
                                 src={program.image} 
                                 alt={program.name} 
                                 className="w-full h-full object-cover"
                               />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="absolute top-1 right-1 h-6 w-6 p-0"
-                                onClick={() => updateProgram(unitType.value, index, 'image', '')}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="absolute top-2 right-2 flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => triggerUpload(unitType.value, 'programs', index)}
+                                  disabled={uploadingField === `${unitType.value}-programs-${index}`}
+                                >
+                                  {uploadingField === `${unitType.value}-programs-${index}` ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Upload className="h-3 w-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => updateProgram(unitType.value, index, 'image', '')}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div 
+                              className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors max-w-xs"
+                              onClick={() => triggerUpload(unitType.value, 'programs', index)}
+                            >
+                              {uploadingField === `${unitType.value}-programs-${index}` ? (
+                                <>
+                                  <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                                  <p className="text-xs text-muted-foreground mt-1">Mengupload...</p>
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-6 w-6 text-muted-foreground" />
+                                  <p className="text-xs text-muted-foreground mt-1">Upload gambar</p>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => removeProgram(unitType.value, index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     ))}
                     {units[unitType.value]?.programs.length === 0 && (
@@ -605,64 +636,81 @@ export default function AdminUnitsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     {units[unitType.value]?.facilities.map((facility, index) => (
-                      <div key={index} className="flex gap-4 p-4 border rounded-lg items-start">
-                        <div className="flex-1 space-y-2">
-                          <Label>Nama Fasilitas</Label>
-                          <Input
-                            placeholder="Nama fasilitas"
-                            value={facility.name}
-                            onChange={(e) => updateFacility(unitType.value, index, 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <Label>Gambar Fasilitas</Label>
-                          <div className="flex gap-2">
+                      <div key={index} className="p-4 border rounded-lg">
+                        <div className="flex gap-4 items-start">
+                          <div className="flex-1 space-y-2">
+                            <Label>Nama Fasilitas</Label>
                             <Input
-                              placeholder="URL gambar"
-                              value={facility.image}
-                              onChange={(e) => updateFacility(unitType.value, index, 'image', e.target.value)}
+                              placeholder="Nama fasilitas"
+                              value={facility.name}
+                              onChange={(e) => updateFacility(unitType.value, index, 'name', e.target.value)}
                             />
-                            <Button 
-                              type="button" 
-                              variant="outline"
-                              onClick={() => triggerUpload(unitType.value, 'facilities', index)}
-                              disabled={uploadingField === `${unitType.value}-facilities-${index}`}
-                            >
-                              {uploadingField === `${unitType.value}-facilities-${index}` ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Upload className="h-4 w-4" />
-                              )}
-                            </Button>
                           </div>
-                          {facility.image && (
-                            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted max-w-xs">
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            className="text-destructive hover:text-destructive mt-6"
+                            onClick={() => removeFacility(unitType.value, index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-4 space-y-2">
+                          <Label>Gambar Fasilitas</Label>
+                          {facility.image ? (
+                            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted max-w-xs border">
                               <img 
                                 src={facility.image} 
                                 alt={facility.name} 
                                 className="w-full h-full object-cover"
                               />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                className="absolute top-1 right-1 h-6 w-6 p-0"
-                                onClick={() => updateFacility(unitType.value, index, 'image', '')}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="absolute top-2 right-2 flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => triggerUpload(unitType.value, 'facilities', index)}
+                                  disabled={uploadingField === `${unitType.value}-facilities-${index}`}
+                                >
+                                  {uploadingField === `${unitType.value}-facilities-${index}` ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Upload className="h-3 w-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={() => updateFacility(unitType.value, index, 'image', '')}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div 
+                              className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors max-w-xs"
+                              onClick={() => triggerUpload(unitType.value, 'facilities', index)}
+                            >
+                              {uploadingField === `${unitType.value}-facilities-${index}` ? (
+                                <>
+                                  <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+                                  <p className="text-xs text-muted-foreground mt-1">Mengupload...</p>
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-6 w-6 text-muted-foreground" />
+                                  <p className="text-xs text-muted-foreground mt-1">Upload gambar</p>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => removeFacility(unitType.value, index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     ))}
                     {units[unitType.value]?.facilities.length === 0 && (
