@@ -77,9 +77,14 @@ export default function AdminLoginPage() {
       
       <Card className="w-full max-w-md relative z-10">
         <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary font-bold text-3xl mb-4 shadow-lg">
-            ي
-          </div>
+          <div className="mx-auto w-24 h-24 relative rounded-2xl overflow-hidden bg-white mb-4 shadow-lg">
+  <Image
+    src="/images/logo-yayasan.png"
+    alt="Logo Yayasan Al Mujahidin"
+    fill
+    className="object-contain"
+  />
+</div>
           <CardTitle className="text-2xl">Panel Admin</CardTitle>
           <CardDescription>
             Yayasan Al Mujahidin Kalimantan Timur
