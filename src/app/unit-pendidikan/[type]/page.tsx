@@ -6,14 +6,24 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  ArrowLeft, GraduationCap, BookOpen, Users, Award, Building,
-  Home as HomeIcon, School, Phone, Mail, MapPin, Clock,
-  ChevronRight, UserPlus, Check
+  ArrowLeft, GraduationCap, BookOpen, Award, Building,
+  Home as HomeIcon, School, Phone, Mail, MapPin,
+  ChevronRight, UserPlus, Check, AlertCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+
+interface ProgramItem {
+  name: string
+  image?: string
+}
+
+interface FacilityItem {
+  name: string
+  image?: string
+}
 
 interface EducationUnit {
   id: string
@@ -34,6 +44,7 @@ export default function EducationUnitDetailPage() {
   const router = useRouter()
   const [unit, setUnit] = useState<EducationUnit | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const unitType = params.type as string
 
@@ -62,38 +73,65 @@ export default function EducationUnitDetailPage() {
   }
 
   useEffect(() => {
-    fetchUnit()
+    if (unitType) {
+      fetchUnit()
+    }
   }, [unitType])
 
   const fetchUnit = async () => {
+    setIsLoading(true)
+    setError(null)
+    
     try {
       const res = await fetch(`/api/units/${unitType}`)
       const data = await res.json()
-      if (data.success) {
+      
+      if (data.success && data.data) {
         setUnit(data.data)
+      } else {
+        setError(data.message || 'Gagal memuat data unit pendidikan')
       }
-    } catch (error) {
-      console.error('Error fetching unit:', error)
+    } catch (err) {
+      console.error('Error fetching unit:', err)
+      setError('Terjadi kesalahan saat memuat data')
     } finally {
       setIsLoading(false)
     }
   }
 
+  // Parse programs and facilities
+  const parseItems = (data: string | null): (ProgramItem | FacilityItem)[] => {
+    if (!data) return []
+    try {
+      const parsed = JSON.parse(data)
+      if (Array.isArray(parsed)) {
+        if (parsed.length > 0 && typeof parsed[0] === 'string') {
+          return parsed.map((item: string) => ({ name: item, image: '' }))
+        }
+        return parsed
+      }
+    } catch {}
+    return []
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Memuat data...</p>
+        </div>
       </div>
     )
   }
 
-  if (!unit) {
+  if (error || !unit) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <School className="h-16 w-16 text-muted-foreground mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Unit Pendidikan Tidak Ditemukan</h1>
-        <p className="text-muted-foreground mb-4">Unit pendidikan yang Anda cari tidak tersedia.</p>
-        <Button onClick={() => router.push('/')}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <AlertCircle className="h-16 w-16 text-destructive mb-4" />
+        <h1 className="text-2xl font-bold mb-2 text-center">Unit Pendidikan Tidak Ditemukan</h1>
+        <p className="text-muted-foreground mb-4 text-center">{error || 'Unit pendidikan yang Anda cari tidak tersedia.'}</p>
+        <Button onClick={() => router.push('/#unit-pendidikan')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Kembali ke Beranda
         </Button>
@@ -102,8 +140,8 @@ export default function EducationUnitDetailPage() {
   }
 
   const info = unitInfo[unitType] || unitInfo.mi
-  const facilities = unit.facilities ? JSON.parse(unit.facilities) : []
-  const programs = unit.programs ? JSON.parse(unit.programs) : []
+  const programs: ProgramItem[] = parseItems(unit.programs)
+  const facilities: FacilityItem[] = parseItems(unit.facilities)
 
   return (
     <div className="min-h-screen bg-background">
@@ -139,7 +177,7 @@ export default function EducationUnitDetailPage() {
                 {unit.description}
               </p>
               <div className="flex flex-wrap gap-3">
-                <Button size="lg" onClick={() => router.push(`/#ppdb`)}>
+                <Button size="lg" onClick={() => router.push('/#ppdb')}>
                   <UserPlus className="mr-2 h-5 w-5" />
                   Daftar Sekarang
                 </Button>
@@ -161,7 +199,7 @@ export default function EducationUnitDetailPage() {
                   <Image src={unit.image} alt={unit.name} fill className="object-cover" />
                 ) : (
                   <div className={`absolute inset-0 ${info.color} flex items-center justify-center`}>
-                    <div className="text-white">
+                    <div className="text-white scale-150">
                       {info.icon}
                     </div>
                   </div>
@@ -188,26 +226,40 @@ export default function EducationUnitDetailPage() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {programs.map((program: string, index: number) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Card className="h-full hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 ${info.color} rounded-xl flex items-center justify-center text-white mb-4`}>
-                      <Check className="h-6 w-6" />
+          {programs.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {programs.map((program, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="h-full overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div className="aspect-video relative bg-muted">
+                      {program.image ? (
+                        <img 
+                          src={program.image} 
+                          alt={program.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className={`absolute inset-0 ${info.color} flex items-center justify-center`}>
+                          <Check className="h-12 w-12 text-white" />
+                        </div>
+                      )}
                     </div>
-                    <h3 className="font-semibold">{program}</h3>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-lg">{program.name}</h3>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">Belum ada program tersedia</p>
+          )}
         </div>
       </section>
 
@@ -227,26 +279,40 @@ export default function EducationUnitDetailPage() {
             </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {facilities.map((facility: string, index: number) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-                viewport={{ once: true }}
-              >
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className={`w-10 h-10 ${info.color} rounded-lg flex items-center justify-center text-white flex-shrink-0`}>
-                      <Building className="h-5 w-5" />
+          {facilities.length > 0 ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {facilities.map((facility, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div className="aspect-video relative bg-muted">
+                      {facility.image ? (
+                        <img 
+                          src={facility.image} 
+                          alt={facility.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className={`absolute inset-0 ${info.color} flex items-center justify-center`}>
+                          <Building className="h-12 w-12 text-white" />
+                        </div>
+                      )}
                     </div>
-                    <span className="font-medium">{facility}</span>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-lg">{facility.name}</h3>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground">Belum ada data fasilitas</p>
+          )}
         </div>
       </section>
 
