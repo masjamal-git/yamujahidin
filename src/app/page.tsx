@@ -571,7 +571,7 @@ export default function Home() {
               >
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-40 h-40 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
+                    <div className="w-56 h-56 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
   <Image
     src="/images/logo-yayasan.png"
     alt="Logo Yayasan Al Mujahidin"
