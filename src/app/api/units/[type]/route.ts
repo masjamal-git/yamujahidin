@@ -116,12 +116,14 @@ const defaultUnits: Record<string, any> = {
 // GET /api/units/[type] - Get education unit by type
 export async function GET(
   request: NextRequest,
--  { params }: { params: { type: string } }
-+  { params }: { params: Promise<{ type: string }> }
+  { params }: { params: { type: string } }
 ) {
   try {
--    const { type } = params
-+    const { type } = await params
+    const { type } = params
+    
+    const unit = await db.educationUnit.findUnique({
+      where: { type: type },
+    })
     
     // Validate type
     if (!type || !['ponpes', 'mi', 'mts', 'ma'].includes(type)) {
