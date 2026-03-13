@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "sqlite"
+  url       = env("DATABASE_URL")
 }
 
 // Admin users for the system
@@ -135,29 +135,29 @@ model EducationUnit {
 
 // Scholarships
 model Scholarship {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  description  String
   requirements String?
-  benefits    String?
-  deadline    String?
-  image       String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  benefits     String?
+  deadline     String?
+  image        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 // Donations
 model Donation {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?
-  phone     String?
-  amount    Float
-  message   String?
-  status    String   @default("pending") // pending, confirmed, cancelled
+  id            String   @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  amount        Float
+  message       String?
+  status        String   @default("pending") // pending, confirmed, cancelled
   paymentMethod String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
