@@ -1,12 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Production Schema for Vercel/PostgreSQL
+// Use this schema when deploying to Vercel
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "sqlite"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
 }
 
@@ -55,18 +55,16 @@ model Gallery {
 // Students (for PPDB management)
 model Student {
   id              String   @id @default(cuid())
-  // Data Pribadi
   nisn            String?
   nik             String?
   name            String
   placeOfBirth    String?
   dateOfBirth     String?
-  gender          String?  // L, P
-  religion        String?  // Islam, Kristen, Katolik, Hindu, Buddha, Konghucu
+  gender          String?
+  religion        String?
   address         String?
   phone           String?
   email           String?
-  // Data Orang Tua
   fatherName      String?
   fatherJob       String?
   fatherPhone     String?
@@ -76,15 +74,13 @@ model Student {
   guardianName    String?
   guardianJob     String?
   guardianPhone   String?
-  // Data Pendidikan
   schoolOrigin    String?
   schoolAddress   String?
   graduationYear  String?
-  // Data PPDB
   registrationId  String   @unique
-  unitType        String?  // ponpes, mi, mts, ma
-  status          String   @default("pending") // pending, accepted, rejected
-  documents       String?  // JSON string for document URLs
+  unitType        String?
+  status          String   @default("pending")
+  documents       String?
   notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -98,7 +94,7 @@ model Contact {
   phone     String?
   subject   String
   message   String
-  status    String   @default("unread") // unread, read, replied
+  status    String   @default("unread")
   reply     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -109,8 +105,8 @@ model Setting {
   id        String   @id @default(cuid())
   key       String   @unique
   value     String
-  type      String   @default("text") // text, textarea, json, image
-  group     String   @default("general") // general, profile, contact, social
+  type      String   @default("text")
+  group     String   @default("general")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -119,14 +115,14 @@ model Setting {
 model EducationUnit {
   id          String   @id @default(cuid())
   name        String
-  type        String   @unique // ponpes, mi, mts, ma
+  type        String   @unique
   description String?
   address     String?
   phone       String?
   email       String?
   image       String?
-  facilities  String?  // JSON string
-  programs    String?  // JSON string
+  facilities  String?
+  programs    String?
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -156,7 +152,7 @@ model Donation {
   phone         String?
   amount        Float
   message       String?
-  status        String   @default("pending") // pending, confirmed, cancelled
+  status        String   @default("pending")
   paymentMethod String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
