@@ -687,29 +687,37 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                    <CardHeader>
-                      <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
-                        {getUnitIcon(unit.type)}
-                      </div>
-                      <CardTitle className="text-lg">{unit.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                        {unit.description}
-                      </p>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-foreground">Program:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {JSON.parse(unit.programs || '[]').slice(0, 3).map((prog: string, i: number) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {prog}
-                            </Badge>
-                          ))}
+                  <Link href={`/unit-pendidikan/${unit.type}`}>
+                    <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer">
+                      <CardHeader>
+                        <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
+                          {getUnitIcon(unit.type)}
                         </div>
+                        <CardTitle className="text-lg group-hover:text-primary transition-colors">{unit.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                          {unit.description}
+                        </p>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-foreground">Program:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {JSON.parse(unit.programs || '[]').slice(0, 3).map((prog: string, i: number) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {prog}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                      <div className="px-6 pb-4">
+                        <span className="text-primary text-sm font-medium flex items-center group-hover:bg-primary/5 px-3 py-2 rounded-md transition-colors">
+                          Lihat Selengkapnya
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </Card>
+                  </Link>
                 </motion.div>
               ))}
             </div>
