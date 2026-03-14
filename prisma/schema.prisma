@@ -1,5 +1,5 @@
-// Production Schema for Vercel/PostgreSQL
-// Use this schema when deploying to Vercel
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -8,6 +8,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // Admin users for the system
@@ -28,9 +29,9 @@ model News {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  content     String
-  excerpt     String?
-  image       String?
+  content     String   @db.Text
+  excerpt     String?  @db.Text
+  image       String?  @db.Text
   category    String   @default("umum") // umum, pendidikan, kegiatan, pengumuman
   isPublished Boolean  @default(true)
   isFeatured  Boolean  @default(false)
@@ -44,8 +45,8 @@ model News {
 model Gallery {
   id          String   @id @default(cuid())
   title       String
-  description String?
-  image       String?
+  description String?  @db.Text
+  image       String?  @db.Text
   category    String   @default("umum") // umum, kegiatan, prestasi, fasilitas
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -55,16 +56,18 @@ model Gallery {
 // Students (for PPDB management)
 model Student {
   id              String   @id @default(cuid())
+  // Data Pribadi
   nisn            String?
   nik             String?
   name            String
   placeOfBirth    String?
   dateOfBirth     String?
-  gender          String?
-  religion        String?
-  address         String?
+  gender          String?  // L, P
+  religion        String?  // Islam, Kristen, Katolik, Hindu, Buddha, Konghucu
+  address         String?  @db.Text
   phone           String?
   email           String?
+  // Data Orang Tua
   fatherName      String?
   fatherJob       String?
   fatherPhone     String?
@@ -74,14 +77,16 @@ model Student {
   guardianName    String?
   guardianJob     String?
   guardianPhone   String?
+  // Data Pendidikan
   schoolOrigin    String?
-  schoolAddress   String?
+  schoolAddress   String?  @db.Text
   graduationYear  String?
+  // Data PPDB
   registrationId  String   @unique
-  unitType        String?
-  status          String   @default("pending")
-  documents       String?
-  notes           String?
+  unitType        String?  // ponpes, mi, mts, ma
+  status          String   @default("pending") // pending, accepted, rejected
+  documents       String?  @db.Text // JSON string for document URLs
+  notes           String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -93,9 +98,9 @@ model Contact {
   email     String
   phone     String?
   subject   String
-  message   String
-  status    String   @default("unread")
-  reply     String?
+  message   String   @db.Text
+  status    String   @default("unread") // unread, read, replied
+  reply     String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -104,9 +109,9 @@ model Contact {
 model Setting {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String
-  type      String   @default("text")
-  group     String   @default("general")
+  value     String   @db.Text
+  type      String   @default("text") // text, textarea, json, image
+  group     String   @default("general") // general, profile, contact, social
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -115,14 +120,14 @@ model Setting {
 model EducationUnit {
   id          String   @id @default(cuid())
   name        String
-  type        String   @unique
-  description String?
-  address     String?
+  type        String   @unique // ponpes, mi, mts, ma
+  description String?  @db.Text
+  address     String?  @db.Text
   phone       String?
   email       String?
-  image       String?
-  facilities  String?
-  programs    String?
+  image       String?  @db.Text
+  facilities  String?  @db.Text // JSON string
+  programs    String?  @db.Text // JSON string
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -134,11 +139,11 @@ model Scholarship {
   id           String   @id @default(cuid())
   title        String
   slug         String   @unique
-  description  String
-  requirements String?
-  benefits     String?
+  description  String   @db.Text
+  requirements String?  @db.Text
+  benefits     String?  @db.Text
   deadline     String?
-  image        String?
+  image        String?  @db.Text
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -151,8 +156,8 @@ model Donation {
   email         String?
   phone         String?
   amount        Float
-  message       String?
-  status        String   @default("pending")
+  message       String?  @db.Text
+  status        String   @default("pending") // pending, confirmed, cancelled
   paymentMethod String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
