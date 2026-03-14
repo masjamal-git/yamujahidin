@@ -5,10 +5,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  Heart, Banknote, Building, Users, BookOpen, Home,
-  Phone, Mail, MapPin, ChevronRight, CheckCircle2,
-  Copy, CreditCard, Wallet, QrCode, ArrowLeft, Shield,
-  Clock, Gift, HandHeart, Sparkles
+  Heart, Banknote, Building, Users, BookOpen,
+  Phone, ChevronRight, CheckCircle2,
+  Copy, CreditCard, QrCode, ArrowLeft, Shield,
+  Clock, Gift, HandHeart, Sparkles, Mail
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,19 +56,16 @@ const bankAccounts = [
     bank: 'Bank Syariah Indonesia (BSI)',
     accountNumber: '7123456789',
     accountName: 'Yayasan Al Mujahidin Kaltim',
-    logo: '/images/bsi-logo.png',
   },
   {
     bank: 'Bank Muamalat',
     accountNumber: '8123456789',
     accountName: 'Yayasan Al Mujahidin Kaltim',
-    logo: '/images/muamalat-logo.png',
   },
   {
     bank: 'Bank BRI',
     accountNumber: '0123456789',
     accountName: 'Yayasan Al Mujahidin Kaltim',
-    logo: '/images/bri-logo.png',
   },
 ]
 
@@ -126,7 +123,7 @@ export default function DonasiPage() {
           phone: formData.phone || null,
           amount: finalAmount,
           message: formData.message || null,
-          paymentMethod: 'transfer',
+          paymentMethod: selectedCategory,
         }),
       })
 
@@ -186,7 +183,7 @@ export default function DonasiPage() {
                   Konfirmasi pembayaran via WhatsApp:
                 </p>
                 <Button asChild className="w-full">
-                  <a href="https://wa.me/6281234567890?text=Assalamualaikum, saya ingin konfirmasi donasi" target="_blank">
+                  <a href="https://wa.me/6281234567890?text=Assalamualaikum, saya ingin konfirmasi donasi" target="_blank" rel="noopener noreferrer">
                     <Phone className="mr-2 h-4 w-4" />
                     Konfirmasi via WhatsApp
                   </a>
@@ -235,7 +232,6 @@ export default function DonasiPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative py-20 bg-gradient-to-br from-primary/10 via-background to-primary/5 overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
           <div className="container mx-auto px-4 relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -530,7 +526,7 @@ export default function DonasiPage() {
                       Setelah transfer, konfirmasi donasi Anda melalui:
                     </p>
                     <Button asChild variant="outline" className="w-full">
-                      <a href="https://wa.me/6281234567890" target="_blank">
+                      <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer">
                         <Phone className="mr-2 h-4 w-4" />
                         WhatsApp Admin
                       </a>
