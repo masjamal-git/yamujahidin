@@ -572,14 +572,14 @@ export default function Home() {
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-70 h-70 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
-  <Image
-    src="/images/logo-yayasan.png"
-    alt="Logo Yayasan Al Mujahidin"
-    fill
-    className="object-contain p-2"
-  />
-</div>
-                   <p className="text-muted-foreground">Yayasan Al Mujahidin Kaltim</p>
+                      <Image
+                        src="/images/logo-yayasan.png"
+                        alt="Logo Yayasan Al Mujahidin"
+                        fill
+                        className="object-contain p-2"
+                      />
+                    </div>
+                    <p className="text-muted-foreground">Yayasan Al Mujahidin Kaltim</p>
                   </div>
                 </div>
               </motion.div>
@@ -656,35 +656,29 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Link href={`/unit-pendidikan/${unit.type}`}>
-                    <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
-                      <CardHeader>
-                        <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                          {getUnitIcon(unit.type)}
+                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                    <CardHeader>
+                      <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
+                        {getUnitIcon(unit.type)}
+                      </div>
+                      <CardTitle className="text-lg">{unit.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                        {unit.description}
+                      </p>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-foreground">Program:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {JSON.parse(unit.programs || '[]').slice(0, 3).map((prog: string, i: number) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {prog}
+                            </Badge>
+                          ))}
                         </div>
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">{unit.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                          {unit.description}
-                        </p>
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-foreground">Program:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {JSON.parse(unit.programs || '[]').slice(0, 3).map((prog: string, i: number) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {prog}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="mt-4 flex items-center text-primary text-sm font-medium">
-                          <span>Lihat Detail</span>
-                          <ChevronRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               ))}
             </div>
@@ -730,42 +724,44 @@ export default function Home() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
-                    <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer">
-                      <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 relative overflow-hidden">
-                        {item.image ? (
-                          <Image src={item.image} alt={item.title} fill className="object-cover" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <FileText className="h-12 w-12 text-primary/30" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors" />
-                      </div>
-                      <CardHeader>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge className={getCategoryColor(item.category)}>
-                            {item.category}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(item.createdAt)}
-                          </span>
+                    <Link href={`/berita/${item.slug}`}>
+                      <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer">
+                        <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 relative overflow-hidden">
+                          {item.image ? (
+                            <Image src={item.image} alt={item.title} fill className="object-cover" />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <FileText className="h-12 w-12 text-primary/30" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors" />
                         </div>
-                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                          {item.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {item.excerpt || item.content?.replace(/<[^>]*>/g, '').slice(0, 150)}
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="ghost" className="text-primary group-hover:bg-primary/5">
-                          Baca Selengkapnya
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
+                        <CardHeader>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className={getCategoryColor(item.category)}>
+                              {item.category}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(item.createdAt)}
+                            </span>
+                          </div>
+                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                            {item.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {item.excerpt || item.content?.replace(/<[^>]*>/g, '').slice(0, 150)}
+                          </p>
+                        </CardContent>
+                        <CardFooter>
+                          <Button variant="ghost" className="text-primary group-hover:bg-primary/5">
+                            Baca Selengkapnya
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </Link>
                   </motion.div>
                 ))}
               </div>
