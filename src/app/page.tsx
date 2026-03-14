@@ -602,7 +602,7 @@ export default function Home() {
               >
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-70 h-70 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
+                    <div className="w-24 h-24 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
                       <Image
                         src="/images/logo-yayasan.png"
                         alt="Logo Yayasan Al Mujahidin"
@@ -755,42 +755,44 @@ export default function Home() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
-                    <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer">
-                      <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 relative overflow-hidden">
-                        {item.image ? (
-                          <Image src={item.image} alt={item.title} fill className="object-cover" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <FileText className="h-12 w-12 text-primary/30" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors" />
-                      </div>
-                      <CardHeader>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge className={getCategoryColor(item.category)}>
-                            {item.category}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(item.createdAt)}
-                          </span>
+                    <Link href={`/berita/${item.slug}`} className="block">
+                      <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer">
+                        <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 relative overflow-hidden">
+                          {item.image ? (
+                            <Image src={item.image} alt={item.title} fill className="object-cover" unoptimized />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <FileText className="h-12 w-12 text-primary/30" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors" />
                         </div>
-                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                          {item.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {item.excerpt || item.content?.replace(/<[^>]*>/g, '').slice(0, 150)}
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button variant="ghost" className="text-primary group-hover:bg-primary/5">
-                          Baca Selengkapnya
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </CardFooter>
-                    </Card>
+                        <CardHeader>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className={getCategoryColor(item.category)}>
+                              {item.category}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(item.createdAt)}
+                            </span>
+                          </div>
+                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                            {item.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {item.excerpt || item.content?.replace(/<[^>]*>/g, '').slice(0, 150)}
+                          </p>
+                        </CardContent>
+                        <CardFooter>
+                          <span className="text-primary text-sm font-medium flex items-center group-hover:bg-primary/5 px-4 py-2 rounded-md transition-colors">
+                            Baca Selengkapnya
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </span>
+                        </CardFooter>
+                      </Card>
+                    </Link>
                   </motion.div>
                 ))}
               </div>
