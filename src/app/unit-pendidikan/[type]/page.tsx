@@ -1,32 +1,80 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  ArrowLeft, Phone, Mail, MapPin, Clock, Users, BookOpen, Award,
+  ArrowLeft, Phone, Mail, MapPin, Users, BookOpen, Award,
   ChevronRight, CheckCircle2, GraduationCap, Home as HomeIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from 'sonner'
 
-interface EducationUnitDetail {
+// Static data for education units (fallback)
+const staticEducationUnits: Record<string, {
   id: string
   name: string
   type: string
-  description: string | null
-  address: string | null
-  phone: string | null
-  email: string | null
+  description: string
+  address: string
+  phone: string
+  email: string
   image: string | null
-  facilities: string | null
-  programs: string | null
+  facilities: string[]
+  programs: string[]
+}> = {
+  ponpes: {
+    id: '1',
+    name: 'Pondok Pesantren Al Mujahidin',
+    type: 'ponpes',
+    description: 'Pondok Pesantren Al Mujahidin merupakan wadah pendidikan Islam intensif dengan sistem asrama. Santri dididik secara komprehensif dalam bidang ilmu agama, akhlak, dan kemandirian.',
+    address: 'Jl. Pendidikan No. 1, Samarinda, Kalimantan Timur',
+    phone: '(0541) 123456',
+    email: 'ponpes@yalmuja.sch.id',
+    image: null,
+    facilities: ['Masjid', 'Asrama Putra', 'Asrama Putri', 'Ruang Kelas', 'Perpustakaan', 'Lapangan Olahraga'],
+    programs: ['Tahfidz Al-Quran', 'Kajian Kitab Kuning', 'Bahasa Arab', 'Bahasa Inggris'],
+  },
+  mi: {
+    id: '2',
+    name: 'Madrasah Ibtidaiyah (MI)',
+    type: 'mi',
+    description: 'MI Al Mujahidin menyelenggarakan pendidikan dasar dengan kurikulum terpadu yang mengintegrasikan kurikulum nasional dan kurikulum pesantren.',
+    address: 'Jl. Pendidikan No. 1, Samarinda, Kalimantan Timur',
+    phone: '(0541) 123456',
+    email: 'mi@yalmuja.sch.id',
+    image: null,
+    facilities: ['Ruang Kelas Ber-AC', 'Perpustakaan', 'Laboratorium Komputer', 'Lapangan Bermain'],
+    programs: ['Kurikulum Nasional', 'Tahfidz Al-Quran', 'Bahasa Arab', 'Praktek Ibadah'],
+  },
+  mts: {
+    id: '3',
+    name: 'Madrasah Tsanawiyah (MTs)',
+    type: 'mts',
+    description: 'MTs Al Mujahidin menawarkan pendidikan menengah pertama dengan penguatan karakter Islami dan peningkatan kompetensi akademik.',
+    address: 'Jl. Pendidikan No. 1, Samarinda, Kalimantan Timur',
+    phone: '(0541) 123456',
+    email: 'mts@yalmuja.sch.id',
+    image: null,
+    facilities: ['Ruang Kelas Ber-AC', 'Laboratorium IPA', 'Laboratorium Komputer', 'Perpustakaan'],
+    programs: ['Kurikulum Nasional', 'Tahfidz Al-Quran', 'Bahasa Arab & Inggris', 'IPA & IPS'],
+  },
+  ma: {
+    id: '4',
+    name: 'Madrasah Aliyah (MA)',
+    type: 'ma',
+    description: 'MA Al Mujahidin menyiapkan lulusan yang siap melanjutkan ke perguruan tinggi dengan bekal ilmu agama dan ilmu umum.',
+    address: 'Jl. Pendidikan No. 1, Samarinda, Kalimantan Timur',
+    phone: '(0541) 123456',
+    email: 'ma@yalmuja.sch.id',
+    image: null,
+    facilities: ['Ruang Kelas Ber-AC', 'Laboratorium IPA', 'Laboratorium Bahasa', 'Aula Serbaguna'],
+    programs: ['Jurusan IPA', 'Jurusan IPS', 'Jurusan Keagamaan', 'Persiapan PTN'],
+  },
 }
 
 const unitInfo: Record<string, { icon: React.ReactNode, color: string, gradient: string }> = {
@@ -52,47 +100,87 @@ const unitInfo: Record<string, { icon: React.ReactNode, color: string, gradient:
   },
 }
 
-interface PageProps {
-  params: Promise<{ type: string }>
+interface EducationUnit {
+  id: string
+  name: string
+  type: string
+  description: string
+  address: string
+  phone: string
+  email: string
+  image: string | null
+  facilities: string[]
+  programs: string[]
 }
 
-export default function EducationUnitDetailPage({ params }: PageProps) {
-  const resolvedParams = use(params)
+export default function EducationUnitDetailPage() {
+  const params = useParams()
   const router = useRouter()
-  const [unit, setUnit] = useState<EducationUnitDetail | null>(null)
+  const type = params.type as string
+  
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const type = resolvedParams.type
+  const [unit, setUnit] = useState<EducationUnit | null>(null)
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Try to fetch from API first
+        const res = await fetch(`/api/education-units/${type}`)
+        const data = await res.json()
+        
+        if (data.success && data.data) {
+          // Parse facilities and programs if they're strings
+          let facilities = data.data.facilities
+          let programs = data.data.programs
+          
+          if (typeof facilities === 'string') {
+            try {
+              facilities = JSON.parse(facilities)
+            } catch {
+              facilities = []
+            }
+          }
+          
+          if (typeof programs === 'string') {
+            try {
+              programs = JSON.parse(programs)
+            } catch {
+              programs = []
+            }
+          }
+          
+          setUnit({
+            ...data.data,
+            facilities: facilities || [],
+            programs: programs || [],
+          })
+        } else {
+          // Fallback to static data
+          const staticUnit = staticEducationUnits[type]
+          if (staticUnit) {
+            setUnit(staticUnit)
+          } else {
+            setUnit(null)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching education unit:', error)
+        // Fallback to static data
+        const staticUnit = staticEducationUnits[type]
+        if (staticUnit) {
+          setUnit(staticUnit)
+        } else {
+          setUnit(null)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     if (type) {
-      fetchUnit()
+      fetchData()
     }
   }, [type])
-
-  const fetchUnit = async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      const res = await fetch(`/api/education-units/${type}`, {
-        cache: 'no-store',
-      })
-      const data = await res.json()
-      
-      if (data.success && data.data) {
-        setUnit(data.data)
-      } else {
-        setError(data.message || 'Unit pendidikan tidak ditemukan')
-      }
-    } catch (err) {
-      console.error('Error fetching unit:', err)
-      setError('Terjadi kesalahan saat memuat data')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const info = unitInfo[type] || unitInfo.ponpes
 
@@ -111,7 +199,7 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
     )
   }
 
-  if (error || !unit) {
+  if (!unit) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
         <motion.div
@@ -123,7 +211,7 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
             <ArrowLeft className="h-10 w-10 text-muted-foreground" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Unit Pendidikan Tidak Ditemukan</h1>
-          <p className="text-muted-foreground mb-6">{error || 'Unit pendidikan yang Anda cari tidak tersedia.'}</p>
+          <p className="text-muted-foreground mb-6">Unit pendidikan yang Anda cari tidak tersedia.</p>
           <Button onClick={() => router.push('/#unit-pendidikan')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali ke Beranda
@@ -132,9 +220,6 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
       </div>
     )
   }
-
-  const facilities = unit.facilities ? JSON.parse(unit.facilities) : []
-  const programs = unit.programs ? JSON.parse(unit.programs) : []
 
   return (
     <div className="min-h-screen bg-background">
@@ -153,11 +238,9 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
               {unit.name}
             </h1>
-            {unit.description && (
-              <p className="text-lg opacity-90 max-w-2xl mx-auto">
-                {unit.description}
-              </p>
-            )}
+            <p className="text-lg opacity-90 max-w-2xl mx-auto">
+              {unit.description}
+            </p>
           </motion.div>
         </div>
       </section>
@@ -209,18 +292,14 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {programs.length > 0 ? (
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {programs.map((prog: string, i: number) => (
-                        <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                          <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">{prog}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">Informasi program belum tersedia</p>
-                  )}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {unit.programs.map((prog, i) => (
+                      <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{prog}</span>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -239,17 +318,13 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {facilities.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {facilities.map((facility: string, i: number) => (
-                        <Badge key={i} variant="secondary" className="px-4 py-2">
-                          {facility}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">Informasi fasilitas belum tersedia</p>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {unit.facilities.map((facility, i) => (
+                      <Badge key={i} variant="secondary" className="px-4 py-2">
+                        {facility}
+                      </Badge>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -268,37 +343,31 @@ export default function EducationUnitDetailPage({ params }: PageProps) {
                   <CardTitle className="text-lg">Informasi Kontak</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {unit.address && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium">Alamat</p>
-                        <p className="text-sm text-muted-foreground">{unit.address}</p>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Alamat</p>
+                      <p className="text-sm text-muted-foreground">{unit.address}</p>
                     </div>
-                  )}
-                  {unit.phone && (
-                    <div className="flex items-start gap-3">
-                      <Phone className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium">Telepon</p>
-                        <a href={`tel:${unit.phone}`} className="text-sm text-muted-foreground hover:text-primary">
-                          {unit.phone}
-                        </a>
-                      </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Telepon</p>
+                      <a href={`tel:${unit.phone}`} className="text-sm text-muted-foreground hover:text-primary">
+                        {unit.phone}
+                      </a>
                     </div>
-                  )}
-                  {unit.email && (
-                    <div className="flex items-start gap-3">
-                      <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium">Email</p>
-                        <a href={`mailto:${unit.email}`} className="text-sm text-muted-foreground hover:text-primary">
-                          {unit.email}
-                        </a>
-                      </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">Email</p>
+                      <a href={`mailto:${unit.email}`} className="text-sm text-muted-foreground hover:text-primary">
+                        {unit.email}
+                      </a>
                     </div>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
