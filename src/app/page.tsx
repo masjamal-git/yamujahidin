@@ -755,10 +755,10 @@ export default function Home() {
                           </p>
                         </CardContent>
                         <CardFooter>
-                          <Button variant="ghost" className="text-primary group-hover:bg-primary/5">
-                            Baca Selengkapnya
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
+                          <span className="text-primary text-sm font-medium flex items-center group-hover:bg-primary/5 px-4 py-2 rounded-md transition-colors">
+  Baca Selengkapnya
+  <ArrowRight className="ml-2 h-4 w-4" />
+</span>
                         </CardFooter>
                       </Card>
                     </Link>
