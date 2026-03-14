@@ -22,7 +22,6 @@ const menuItems = [
   { name: 'Galeri', href: '/admin/gallery', icon: ImageIcon },
   { name: 'Siswa (PPDB)', href: '/admin/students', icon: Users },
   { name: 'Beasiswa', href: '/admin/scholarships', icon: Gift },
-  { name: 'Donasi', href: '/admin/donations', icon: Heart },
   { name: 'Kontak', href: '/admin/contacts', icon: MessageCircle },
   { name: 'Pengaturan', href: '/admin/settings', icon: Settings },
 ]
