@@ -725,7 +725,7 @@ export default function Home() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     viewport={{ once: true }}
                   >
-                    <a href={`/berita/${item.slug}`}>
+                    <Link href={`/berita/${item.slug}`} className="block">
                       <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group cursor-pointer">
                         <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 relative overflow-hidden">
                           {item.image ? (
@@ -762,7 +762,7 @@ export default function Home() {
                           </span>
                         </CardFooter>
                       </Card>
-                    </a>
+                    </Link>
                   </motion.div>
                 ))}
               </div>
