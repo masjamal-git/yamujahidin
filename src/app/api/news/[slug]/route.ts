@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-// GET /api/news/[slug] - Get single news by slug
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -20,7 +19,6 @@ export async function GET(
       )
     }
 
-    // Increment view count
     await db.news.update({
       where: { slug: slug },
       data: { viewCount: { increment: 1 } },
