@@ -29,9 +29,9 @@ model News {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  content     String   @db.Text
-  excerpt     String?  @db.Text
-  image       String?  @db.Text
+  content     String   
+  excerpt     String?  
+  image       String?  
   category    String   @default("umum") // umum, pendidikan, kegiatan, pengumuman
   isPublished Boolean  @default(true)
   isFeatured  Boolean  @default(false)
@@ -45,8 +45,8 @@ model News {
 model Gallery {
   id          String   @id @default(cuid())
   title       String
-  description String?  @db.Text
-  image       String?  @db.Text
+  description String?  
+  image       String?  
   category    String   @default("umum") // umum, kegiatan, prestasi, fasilitas
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -64,7 +64,7 @@ model Student {
   dateOfBirth     String?
   gender          String?  // L, P
   religion        String?  // Islam, Kristen, Katolik, Hindu, Buddha, Konghucu
-  address         String?  @db.Text
+  address         String?  
   phone           String?
   email           String?
   // Data Orang Tua
@@ -79,14 +79,14 @@ model Student {
   guardianPhone   String?
   // Data Pendidikan
   schoolOrigin    String?
-  schoolAddress   String?  @db.Text
+  schoolAddress   String?  
   graduationYear  String?
   // Data PPDB
   registrationId  String   @unique
   unitType        String?  // ponpes, mi, mts, ma
   status          String   @default("pending") // pending, accepted, rejected
-  documents       String?  @db.Text // JSON string for document URLs
-  notes           String?  @db.Text
+  documents       String?   // JSON string for document URLs
+  notes           String?  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -98,9 +98,9 @@ model Contact {
   email     String
   phone     String?
   subject   String
-  message   String   @db.Text
+  message   String   
   status    String   @default("unread") // unread, read, replied
-  reply     String?  @db.Text
+  reply     String?  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -109,7 +109,7 @@ model Contact {
 model Setting {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String   @db.Text
+  value     String   
   type      String   @default("text") // text, textarea, json, image
   group     String   @default("general") // general, profile, contact, social
   createdAt DateTime @default(now())
@@ -121,13 +121,13 @@ model EducationUnit {
   id          String   @id @default(cuid())
   name        String
   type        String   @unique // ponpes, mi, mts, ma
-  description String?  @db.Text
-  address     String?  @db.Text
+  description String?  
+  address     String?  
   phone       String?
   email       String?
-  image       String?  @db.Text
-  facilities  String?  @db.Text // JSON string
-  programs    String?  @db.Text // JSON string
+  image       String?  
+  facilities  String?  
+  programs    String?  
   isActive    Boolean  @default(true)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
@@ -139,11 +139,11 @@ model Scholarship {
   id           String   @id @default(cuid())
   title        String
   slug         String   @unique
-  description  String   @db.Text
-  requirements String?  @db.Text
-  benefits     String?  @db.Text
+  description  String   
+  requirements String?  
+  benefits     String?  
   deadline     String?
-  image        String?  @db.Text
+  image        String?  
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -156,7 +156,7 @@ model Donation {
   email         String?
   phone         String?
   amount        Float
-  message       String?  @db.Text
+  message       String?  
   status        String   @default("pending") // pending, confirmed, cancelled
   paymentMethod String?
   createdAt     DateTime @default(now())
