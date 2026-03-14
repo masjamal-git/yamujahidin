@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, use } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -54,15 +54,19 @@ const categoryLabels: Record<string, string> = {
   prestasi: 'Prestasi',
 }
 
-export default function NewsDetailPage() {
-  const params = useParams()
+interface PageProps {
+  params: Promise<{ slug: string }>
+}
+
+export default function NewsDetailPage({ params }: PageProps) {
+  const resolvedParams = use(params)
   const router = useRouter()
   const [news, setNews] = useState<NewsDetail | null>(null)
   const [relatedNews, setRelatedNews] = useState<RelatedNews[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug
+  const slug = resolvedParams.slug
 
   useEffect(() => {
     if (slug) {
@@ -75,14 +79,17 @@ export default function NewsDetailPage() {
     setError(null)
     
     try {
-      // Fetch news detail
-      const res = await fetch(`/api/news/${slug}`)
+      const res = await fetch(`/api/news/${slug}`, {
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       const data = await res.json()
       
       if (data.success && data.data) {
         setNews(data.data)
-        // Fetch related news
-        fetchRelatedNews(data.data.category, data.data.id)
+        fetchRelatedNews(data.data.id)
       } else {
         setError(data.message || 'Berita tidak ditemukan')
       }
@@ -94,9 +101,9 @@ export default function NewsDetailPage() {
     }
   }
 
-  const fetchRelatedNews = async (category: string, currentId: string) => {
+  const fetchRelatedNews = async (currentId: string) => {
     try {
-      const res = await fetch(`/api/news?limit=4`)
+      const res = await fetch(`/api/news?limit=4`, { cache: 'no-store' })
       const data = await res.json()
       if (data.success) {
         const filtered = data.data.filter((item: RelatedNews) => item.id !== currentId).slice(0, 3)
@@ -206,7 +213,7 @@ export default function NewsDetailPage() {
             >
               {/* Header */}
               <header className="mb-6">
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <Badge className={categoryColors[news.category] || 'bg-gray-500'}>
                     {categoryLabels[news.category] || news.category}
                   </Badge>
