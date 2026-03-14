@@ -6,8 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  ArrowLeft, Calendar, User, Tag, Eye, Share2, Facebook,
-  Twitter, Linkedin, ChevronRight, Clock, ArrowRight
+  ArrowLeft, Calendar, Eye, Share2, Facebook,
+  Twitter, Linkedin, ChevronRight, ArrowRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -62,7 +62,7 @@ export default function NewsDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const slug = params.slug as string
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug
 
   useEffect(() => {
     if (slug) {
@@ -96,7 +96,7 @@ export default function NewsDetailPage() {
 
   const fetchRelatedNews = async (category: string, currentId: string) => {
     try {
-      const res = await fetch(`/api/news?limit=3`)
+      const res = await fetch(`/api/news?limit=4`)
       const data = await res.json()
       if (data.success) {
         const filtered = data.data.filter((item: RelatedNews) => item.id !== currentId).slice(0, 3)
@@ -242,13 +242,14 @@ export default function NewsDetailPage() {
                     fill
                     className="object-cover"
                     priority
+                    unoptimized
                   />
                 </div>
               )}
 
               {/* Content */}
               <div 
-                className="prose prose-lg max-w-none dark:prose-invert"
+                className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary"
                 dangerouslySetInnerHTML={{ __html: news.content }}
               />
 
@@ -327,6 +328,7 @@ export default function NewsDetailPage() {
                                 alt={item.title}
                                 fill
                                 className="object-cover"
+                                unoptimized
                               />
                             </div>
                           ) : (
