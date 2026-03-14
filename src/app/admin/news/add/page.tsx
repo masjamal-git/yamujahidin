@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 export default function AddNewsPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -24,6 +25,53 @@ export default function AddNewsPage() {
     isPublished: true,
     isFeatured: false,
   })
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar')
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal 5MB')
+      return
+    }
+
+    setIsUploading(true)
+
+    try {
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      })
+
+      const data = await res.json()
+
+      if (data.success && data.url) {
+        setFormData({ ...formData, image: data.url })
+        toast.success('Gambar berhasil diupload')
+      } else {
+        toast.error('Gagal mengupload gambar')
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.error('Terjadi kesalahan saat upload')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, image: '' })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,9 +96,10 @@ export default function AddNewsPage() {
         toast.success('Berita berhasil ditambahkan')
         router.push('/admin/news')
       } else {
-        toast.error('Gagal menambahkan berita')
+        toast.error(data.message || 'Gagal menambahkan berita')
       }
-    } catch {
+    } catch (error) {
+      console.error('Error creating news:', error)
       toast.error('Terjadi kesalahan')
     } finally {
       setIsLoading(false)
@@ -108,14 +157,70 @@ export default function AddNewsPage() {
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   />
                 </div>
+                
+                {/* Image Upload Section */}
                 <div className="space-y-2">
-                  <Label htmlFor="image">URL Gambar</Label>
-                  <Input
-                    id="image"
-                    placeholder="https://example.com/image.jpg"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  />
+                  <Label>Gambar Berita</Label>
+                  <div className="space-y-4">
+                    {formData.image ? (
+                      <div className="relative inline-block">
+                        <img
+                          src={formData.image}
+                          alt="Preview"
+                          className="max-h-64 rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                          onClick={handleRemoveImage}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                        <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Upload gambar untuk berita
+                        </p>
+                        <label htmlFor="image-upload">
+                          <input
+                            id="image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageUpload}
+                            disabled={isUploading}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isUploading}
+                            asChild
+                          >
+                            <span className="cursor-pointer">
+                              {isUploading ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="mr-2 h-4 w-4" />
+                                  Pilih Gambar
+                                </>
+                              )}
+                            </span>
+                          </Button>
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Format: JPG, PNG, GIF. Maks 5MB
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
