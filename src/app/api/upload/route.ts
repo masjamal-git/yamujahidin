@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      url: base64,
+      url: base64, // Primary field for image URL
       data: { 
         base64,
         filename: file.name,
