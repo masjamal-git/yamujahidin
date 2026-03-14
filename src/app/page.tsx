@@ -9,7 +9,7 @@ import {
   Facebook, Instagram, Youtube, GraduationCap, BookOpen, Users,
   Award, Calendar, ArrowRight, Send, Eye, Heart, Building,
   School, Home as HomeIcon, Image as ImageIcon, FileText,
-  UserPlus, Gift, MessageCircle, Sun, Moon
+  UserPlus, Gift, MessageCircle, Sun, Moon, HandHeart
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -86,6 +86,11 @@ const navItems = [
   { name: 'PPDB', href: '#ppdb', icon: UserPlus },
   { name: 'Beasiswa', href: '#beasiswa', icon: Gift },
   { name: 'Kontak', href: '#kontak', icon: MessageCircle },
+]
+
+// External link items
+const externalItems = [
+  { name: 'Donasi', href: '/donasi', icon: HandHeart },
 ]
 
 export default function Home() {
@@ -390,6 +395,15 @@ export default function Home() {
                 {item.name}
               </button>
             ))}
+            {externalItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="px-3 py-2 text-sm font-medium rounded-md transition-colors text-muted-foreground hover:text-primary hover:bg-primary/5"
+              >
+                {item.name}
+              </Link>
+            ))}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -441,6 +455,17 @@ export default function Home() {
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium">{item.name}</span>
                   </button>
+                ))}
+                {externalItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="flex items-center gap-3 px-4 py-3 rounded-md transition-colors text-muted-foreground hover:text-primary hover:bg-primary/5"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
                 ))}
               </nav>
             </motion.div>
@@ -577,7 +602,7 @@ export default function Home() {
               >
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-24 h-24 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
+                    <div className="w-70 h-70 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
                       <Image
                         src="/images/logo-yayasan.png"
                         alt="Logo Yayasan Al Mujahidin"
