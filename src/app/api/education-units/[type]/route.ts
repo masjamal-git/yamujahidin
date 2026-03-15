@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-// Static fallback data for education units
+// Interface for items with images
+interface FacilityItem {
+  name: string
+  image: string | null
+}
+
+interface ProgramItem {
+  name: string
+  image: string | null
+}
+
+// Static fallback data for education units (new format with images)
 const staticEducationUnits: Record<string, {
   id: string
   name: string
@@ -11,8 +22,8 @@ const staticEducationUnits: Record<string, {
   phone: string | null
   email: string | null
   image: string | null
-  facilities: string[]
-  programs: string[]
+  facilities: FacilityItem[]
+  programs: ProgramItem[]
 }> = {
   ponpes: {
     id: '1',
@@ -23,8 +34,20 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'ponpes@yalmuja.sch.id',
     image: null,
-    facilities: ['Masjid', 'Asrama Putra', 'Asrama Putri', 'Ruang Kelas', 'Perpustakaan', 'Lapangan Olahraga'],
-    programs: ['Tahfidz Al-Quran', 'Kajian Kitab Kuning', 'Bahasa Arab', 'Bahasa Inggris'],
+    facilities: [
+      { name: 'Masjid', image: null },
+      { name: 'Asrama Putra', image: null },
+      { name: 'Asrama Putri', image: null },
+      { name: 'Ruang Kelas', image: null },
+      { name: 'Perpustakaan', image: null },
+      { name: 'Lapangan Olahraga', image: null },
+    ],
+    programs: [
+      { name: 'Tahfidz Al-Quran', image: null },
+      { name: 'Kajian Kitab Kuning', image: null },
+      { name: 'Bahasa Arab', image: null },
+      { name: 'Bahasa Inggris', image: null },
+    ],
   },
   mi: {
     id: '2',
@@ -35,8 +58,18 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'mi@yalmuja.sch.id',
     image: null,
-    facilities: ['Ruang Kelas Ber-AC', 'Perpustakaan', 'Laboratorium Komputer', 'Lapangan Bermain'],
-    programs: ['Kurikulum Nasional', 'Tahfidz Al-Quran', 'Bahasa Arab', 'Praktek Ibadah'],
+    facilities: [
+      { name: 'Ruang Kelas Ber-AC', image: null },
+      { name: 'Perpustakaan', image: null },
+      { name: 'Laboratorium Komputer', image: null },
+      { name: 'Lapangan Bermain', image: null },
+    ],
+    programs: [
+      { name: 'Kurikulum Nasional', image: null },
+      { name: 'Tahfidz Al-Quran', image: null },
+      { name: 'Bahasa Arab', image: null },
+      { name: 'Praktek Ibadah', image: null },
+    ],
   },
   mts: {
     id: '3',
@@ -47,8 +80,18 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'mts@yalmuja.sch.id',
     image: null,
-    facilities: ['Ruang Kelas Ber-AC', 'Laboratorium IPA', 'Laboratorium Komputer', 'Perpustakaan'],
-    programs: ['Kurikulum Nasional', 'Tahfidz Al-Quran', 'Bahasa Arab & Inggris', 'IPA & IPS'],
+    facilities: [
+      { name: 'Ruang Kelas Ber-AC', image: null },
+      { name: 'Laboratorium IPA', image: null },
+      { name: 'Laboratorium Komputer', image: null },
+      { name: 'Perpustakaan', image: null },
+    ],
+    programs: [
+      { name: 'Kurikulum Nasional', image: null },
+      { name: 'Tahfidz Al-Quran', image: null },
+      { name: 'Bahasa Arab & Inggris', image: null },
+      { name: 'IPA & IPS', image: null },
+    ],
   },
   ma: {
     id: '4',
@@ -59,18 +102,35 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'ma@yalmuja.sch.id',
     image: null,
-    facilities: ['Ruang Kelas Ber-AC', 'Laboratorium IPA', 'Laboratorium Bahasa', 'Aula Serbaguna'],
-    programs: ['Jurusan IPA', 'Jurusan IPS', 'Jurusan Keagamaan', 'Persiapan PTN'],
+    facilities: [
+      { name: 'Ruang Kelas Ber-AC', image: null },
+      { name: 'Laboratorium IPA', image: null },
+      { name: 'Laboratorium Bahasa', image: null },
+      { name: 'Aula Serbaguna', image: null },
+    ],
+    programs: [
+      { name: 'Jurusan IPA', image: null },
+      { name: 'Jurusan IPS', image: null },
+      { name: 'Jurusan Keagamaan', image: null },
+      { name: 'Persiapan PTN', image: null },
+    ],
   },
 }
 
-// Helper function to parse JSON array safely
-function parseJsonArray(value: string | null | undefined): string[] {
+// Helper function to parse JSON array safely with backward compatibility
+function parseItems(value: string | null | undefined): (FacilityItem | ProgramItem)[] {
   if (!value) return []
-  if (Array.isArray(value)) return value
   try {
     const parsed = JSON.parse(value)
-    return Array.isArray(parsed) ? parsed : []
+    if (Array.isArray(parsed)) {
+      // Check if it's old format (string array) or new format (object array)
+      if (parsed.length > 0 && typeof parsed[0] === 'string') {
+        // Convert old format to new format
+        return parsed.map((name: string) => ({ name, image: null }))
+      }
+      return parsed
+    }
+    return []
   } catch {
     return []
   }
@@ -123,8 +183,8 @@ export async function GET(
       phone: string | null
       email: string | null
       image: string | null
-      facilities: string[]
-      programs: string[]
+      facilities: (FacilityItem | ProgramItem)[]
+      programs: (FacilityItem | ProgramItem)[]
     }
 
     if (dbUnit) {
@@ -137,8 +197,8 @@ export async function GET(
         phone: dbUnit.phone || staticUnit?.phone || null,
         email: dbUnit.email || staticUnit?.email || null,
         image: dbUnit.image || null,
-        facilities: parseJsonArray(dbUnit.facilities),
-        programs: parseJsonArray(dbUnit.programs),
+        facilities: parseItems(dbUnit.facilities),
+        programs: parseItems(dbUnit.programs),
       }
     } else {
       responseData = staticUnit || {
