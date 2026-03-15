@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Newspaper, Image as ImageIcon, Users, Settings,
   LogOut, Menu, X, ChevronRight, Sun, Moon, Building,
-  MessageCircle, Gift, Bell
+  MessageCircle, Gift, Bell, Heart
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -17,12 +17,12 @@ import { toast } from 'sonner'
 
 const menuItems = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Unit Pendidikan', href: '/admin/unit-pendidikan', icon: Building },
   { name: 'Berita', href: '/admin/news', icon: Newspaper },
   { name: 'Galeri', href: '/admin/gallery', icon: ImageIcon },
+  { name: 'Unit Pendidikan', href: '/admin/education-units', icon: Building },
   { name: 'Siswa (PPDB)', href: '/admin/students', icon: Users },
   { name: 'Beasiswa', href: '/admin/scholarships', icon: Gift },
-  { name: 'Donasi', href: '/admin/donations', icon: Gift },
+  { name: 'Donasi', href: '/admin/donations', icon: Heart },
   { name: 'Kontak', href: '/admin/contacts', icon: MessageCircle },
   { name: 'Pengaturan', href: '/admin/settings', icon: Settings },
 ]
