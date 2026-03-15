@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import {
   ArrowLeft, Phone, Mail, MapPin, Users, BookOpen, Award,
   ChevronRight, CheckCircle2, GraduationCap, Home as HomeIcon
@@ -116,22 +115,27 @@ interface EducationUnit {
 export default function EducationUnitDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const type = params.type as string
+  const type = params?.type as string || 'ponpes'
   
   const [isLoading, setIsLoading] = useState(true)
   const [unit, setUnit] = useState<EducationUnit | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true)
+      
+      // Get static data immediately as fallback
+      const staticUnit = staticEducationUnits[type]
+      
       try {
-        // Try to fetch from API first
+        // Try to fetch from API
         const res = await fetch(`/api/education-units/${type}`)
         const data = await res.json()
         
         if (data.success && data.data) {
           // Parse facilities and programs if they're strings
-          let facilities = data.data.facilities
-          let programs = data.data.programs
+          let facilities = data.data.facilities || []
+          let programs = data.data.programs || []
           
           if (typeof facilities === 'string') {
             try {
@@ -151,27 +155,17 @@ export default function EducationUnitDetailPage() {
           
           setUnit({
             ...data.data,
-            facilities: facilities || [],
-            programs: programs || [],
+            facilities: Array.isArray(facilities) ? facilities : [],
+            programs: Array.isArray(programs) ? programs : [],
           })
         } else {
-          // Fallback to static data
-          const staticUnit = staticEducationUnits[type]
-          if (staticUnit) {
-            setUnit(staticUnit)
-          } else {
-            setUnit(null)
-          }
+          // Use static data
+          setUnit(staticUnit || null)
         }
       } catch (error) {
         console.error('Error fetching education unit:', error)
-        // Fallback to static data
-        const staticUnit = staticEducationUnits[type]
-        if (staticUnit) {
-          setUnit(staticUnit)
-        } else {
-          setUnit(null)
-        }
+        // Use static data on error
+        setUnit(staticUnit || null)
       } finally {
         setIsLoading(false)
       }
@@ -202,11 +196,7 @@ export default function EducationUnitDetailPage() {
   if (!unit) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
             <ArrowLeft className="h-10 w-10 text-muted-foreground" />
           </div>
@@ -216,7 +206,7 @@ export default function EducationUnitDetailPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Kembali ke Beranda
           </Button>
-        </motion.div>
+        </div>
       </div>
     )
   }
@@ -227,11 +217,7 @@ export default function EducationUnitDetailPage() {
       <section className={`relative py-20 bg-gradient-to-br ${info.gradient} overflow-hidden`}>
         <div className="absolute inset-0 bg-black/20" />
         <div className="container mx-auto px-4 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl mx-auto text-center text-white"
-          >
+          <div className="max-w-3xl mx-auto text-center text-white">
             <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 text-white">
               {info.icon}
             </div>
@@ -241,7 +227,7 @@ export default function EducationUnitDetailPage() {
             <p className="text-lg opacity-90 max-w-2xl mx-auto">
               {unit.description}
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -260,140 +246,127 @@ export default function EducationUnitDetailPage() {
           <div className="lg:col-span-2 space-y-8">
             {/* Image */}
             {unit.image && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card className="overflow-hidden">
-                  <div className="aspect-video relative">
-                    <Image
-                      src={unit.image}
-                      alt={unit.name}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-                </Card>
-              </motion.div>
+              <Card className="overflow-hidden">
+                <div className="aspect-video relative">
+                  <Image
+                    src={unit.image}
+                    alt={unit.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+              </Card>
             )}
 
             {/* Programs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    Program Unggulan
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {unit.programs.map((prog, i) => (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  Program Unggulan
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {unit.programs && unit.programs.length > 0 ? (
+                    unit.programs.map((prog, i) => (
                       <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
                         <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                         <span className="text-sm">{prog}</span>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">Tidak ada program</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Facilities */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Fasilitas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {unit.facilities.map((facility, i) => (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Fasilitas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {unit.facilities && unit.facilities.length > 0 ? (
+                    unit.facilities.map((facility, i) => (
                       <Badge key={i} variant="secondary" className="px-4 py-2">
                         {facility}
                       </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">Tidak ada fasilitas</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Info */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Informasi Kontak</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">Alamat</p>
-                      <p className="text-sm text-muted-foreground">{unit.address}</p>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Informasi Kontak</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Alamat</p>
+                    <p className="text-sm text-muted-foreground">{unit.address || '-'}</p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">Telepon</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Telepon</p>
+                    {unit.phone ? (
                       <a href={`tel:${unit.phone}`} className="text-sm text-muted-foreground hover:text-primary">
                         {unit.phone}
                       </a>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">-</p>
+                    )}
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">Email</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Mail className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    {unit.email ? (
                       <a href={`mailto:${unit.email}`} className="text-sm text-muted-foreground hover:text-primary">
                         {unit.email}
                       </a>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">-</p>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* CTA */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card className="bg-primary text-primary-foreground">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">Tertarik Bergabung?</h3>
-                  <p className="text-sm opacity-90 mb-4">
-                    Daftarkan diri Anda untuk bergabung dengan {unit.name}
-                  </p>
-                  <Button 
-                    variant="secondary" 
-                    className="w-full"
-                    onClick={() => router.push('/#ppdb')}
-                  >
-                    Daftar Sekarang
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+            <Card className="bg-primary text-primary-foreground">
+              <CardContent className="pt-6">
+                <h3 className="font-semibold mb-2">Tertarik Bergabung?</h3>
+                <p className="text-sm opacity-90 mb-4">
+                  Daftarkan diri Anda untuk bergabung dengan {unit.name}
+                </p>
+                <Button 
+                  variant="secondary" 
+                  className="w-full"
+                  onClick={() => router.push('/#ppdb')}
+                >
+                  Daftar Sekarang
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Back Button */}
             <Button 
