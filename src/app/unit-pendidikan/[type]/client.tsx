@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowLeft, Phone, Mail, MapPin, Users, BookOpen, Award,
@@ -55,6 +54,10 @@ export default function EducationUnitClient({ unit }: EducationUnitClientProps) 
   const router = useRouter()
   const info = unitInfo[unit.type] || unitInfo.ponpes
 
+  // Check if image is base64
+  const isBase64Image = unit.image?.startsWith('data:image')
+  const isExternalUrl = unit.image?.startsWith('http')
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -92,13 +95,26 @@ export default function EducationUnitClient({ unit }: EducationUnitClientProps) 
             {unit.image && (
               <Card className="overflow-hidden">
                 <div className="aspect-video relative">
-                  <Image
-                    src={unit.image}
-                    alt={unit.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
+                  {/* Use regular img tag for base64 images */}
+                  {isBase64Image ? (
+                    <img
+                      src={unit.image}
+                      alt={unit.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : isExternalUrl ? (
+                    <img
+                      src={unit.image}
+                      alt={unit.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={unit.image}
+                      alt={unit.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
                 </div>
               </Card>
             )}
