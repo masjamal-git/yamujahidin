@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2, Building, Save, Image as ImageIcon, Plus, X, CheckCircle2, RefreshCw } from 'lucide-react'
+import { Loader2, Building, Save, Image as ImageIcon, Plus, X, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -103,14 +103,8 @@ export default function AdminEducationUnitsPage() {
   }, [])
 
   const fetchUnits = async () => {
-    setIsLoading(true)
     try {
-      const res = await fetch('/api/admin/education-units', {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      })
+      const res = await fetch('/api/admin/education-units')
       const data = await res.json()
       if (data.success && data.data && data.data.length > 0) {
         setUnits(data.data)
@@ -215,22 +209,16 @@ export default function AdminEducationUnitsPage() {
 
       const res = await fetch('/api/admin/education-units', {
         method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedUnit),
       })
 
       const data = await res.json()
       if (data.success) {
         // Update local state
-        const updatedUnits = units.map(u => u.type === activeUnit.type ? updatedUnit : u)
-        setUnits(updatedUnits)
+        setUnits(units.map(u => u.type === activeUnit.type ? updatedUnit : u))
         setActiveUnit(updatedUnit)
         toast.success('Data unit pendidikan berhasil disimpan')
-        // Refetch to ensure data is synced
-        setTimeout(() => fetchUnits(), 500)
       } else {
         toast.error(data.message || 'Gagal menyimpan data')
       }
@@ -257,25 +245,19 @@ export default function AdminEducationUnitsPage() {
           <h1 className="text-2xl font-bold">Unit Pendidikan</h1>
           <p className="text-muted-foreground">Kelola informasi unit pendidikan yayasan</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchUnits} disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menyimpan...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Simpan Perubahan
-              </>
-            )}
-          </Button>
-        </div>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Menyimpan...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Simpan Perubahan
+            </>
+          )}
+        </Button>
       </div>
 
       <Tabs value={activeUnit?.type || 'ponpes'} onValueChange={handleUnitChange}>
@@ -524,22 +506,6 @@ export default function AdminEducationUnitsPage() {
                       <Badge variant={activeUnit.isActive ? 'default' : 'secondary'}>
                         {activeUnit.isActive ? 'Aktif' : 'Nonaktif'}
                       </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Jumlah Data</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Program:</span>
-                      <span className="font-medium">{programs.length} program</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Fasilitas:</span>
-                      <span className="font-medium">{facilities.length} fasilitas</span>
                     </div>
                   </CardContent>
                 </Card>
