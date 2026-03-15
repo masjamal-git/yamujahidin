@@ -101,7 +101,14 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ success: true, data: unit })
+    return NextResponse.json({ 
+      success: true, 
+      data: unit 
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+      }
+    })
   } catch (error) {
     console.error('Error fetching education unit:', error)
     return NextResponse.json(
