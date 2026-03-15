@@ -5,12 +5,24 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Phone, Mail, MapPin, Users, BookOpen, Award,
-  ChevronRight, CheckCircle2, GraduationCap, Home as HomeIcon
+  ChevronRight, CheckCircle2, GraduationCap, Home as HomeIcon,
+  Image as ImageIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+
+// Interface for items with images
+interface FacilityItem {
+  name: string
+  image: string | null
+}
+
+interface ProgramItem {
+  name: string
+  image: string | null
+}
 
 // Static data for education units (fallback)
 const staticEducationUnits: Record<string, {
@@ -22,8 +34,8 @@ const staticEducationUnits: Record<string, {
   phone: string
   email: string
   image: string | null
-  facilities: string[]
-  programs: string[]
+  facilities: FacilityItem[]
+  programs: ProgramItem[]
 }> = {
   ponpes: {
     id: '1',
@@ -34,8 +46,20 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'ponpes@yalmuja.sch.id',
     image: null,
-    facilities: ['Masjid', 'Asrama Putra', 'Asrama Putri', 'Ruang Kelas', 'Perpustakaan', 'Lapangan Olahraga'],
-    programs: ['Tahfidz Al-Quran', 'Kajian Kitab Kuning', 'Bahasa Arab', 'Bahasa Inggris'],
+    facilities: [
+      { name: 'Masjid', image: null },
+      { name: 'Asrama Putra', image: null },
+      { name: 'Asrama Putri', image: null },
+      { name: 'Ruang Kelas', image: null },
+      { name: 'Perpustakaan', image: null },
+      { name: 'Lapangan Olahraga', image: null },
+    ],
+    programs: [
+      { name: 'Tahfidz Al-Quran', image: null },
+      { name: 'Kajian Kitab Kuning', image: null },
+      { name: 'Bahasa Arab', image: null },
+      { name: 'Bahasa Inggris', image: null },
+    ],
   },
   mi: {
     id: '2',
@@ -46,8 +70,18 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'mi@yalmuja.sch.id',
     image: null,
-    facilities: ['Ruang Kelas Ber-AC', 'Perpustakaan', 'Laboratorium Komputer', 'Lapangan Bermain'],
-    programs: ['Kurikulum Nasional', 'Tahfidz Al-Quran', 'Bahasa Arab', 'Praktek Ibadah'],
+    facilities: [
+      { name: 'Ruang Kelas Ber-AC', image: null },
+      { name: 'Perpustakaan', image: null },
+      { name: 'Laboratorium Komputer', image: null },
+      { name: 'Lapangan Bermain', image: null },
+    ],
+    programs: [
+      { name: 'Kurikulum Nasional', image: null },
+      { name: 'Tahfidz Al-Quran', image: null },
+      { name: 'Bahasa Arab', image: null },
+      { name: 'Praktek Ibadah', image: null },
+    ],
   },
   mts: {
     id: '3',
@@ -58,8 +92,18 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'mts@yalmuja.sch.id',
     image: null,
-    facilities: ['Ruang Kelas Ber-AC', 'Laboratorium IPA', 'Laboratorium Komputer', 'Perpustakaan'],
-    programs: ['Kurikulum Nasional', 'Tahfidz Al-Quran', 'Bahasa Arab & Inggris', 'IPA & IPS'],
+    facilities: [
+      { name: 'Ruang Kelas Ber-AC', image: null },
+      { name: 'Laboratorium IPA', image: null },
+      { name: 'Laboratorium Komputer', image: null },
+      { name: 'Perpustakaan', image: null },
+    ],
+    programs: [
+      { name: 'Kurikulum Nasional', image: null },
+      { name: 'Tahfidz Al-Quran', image: null },
+      { name: 'Bahasa Arab & Inggris', image: null },
+      { name: 'IPA & IPS', image: null },
+    ],
   },
   ma: {
     id: '4',
@@ -70,8 +114,18 @@ const staticEducationUnits: Record<string, {
     phone: '(0541) 123456',
     email: 'ma@yalmuja.sch.id',
     image: null,
-    facilities: ['Ruang Kelas Ber-AC', 'Laboratorium IPA', 'Laboratorium Bahasa', 'Aula Serbaguna'],
-    programs: ['Jurusan IPA', 'Jurusan IPS', 'Jurusan Keagamaan', 'Persiapan PTN'],
+    facilities: [
+      { name: 'Ruang Kelas Ber-AC', image: null },
+      { name: 'Laboratorium IPA', image: null },
+      { name: 'Laboratorium Bahasa', image: null },
+      { name: 'Aula Serbaguna', image: null },
+    ],
+    programs: [
+      { name: 'Jurusan IPA', image: null },
+      { name: 'Jurusan IPS', image: null },
+      { name: 'Jurusan Keagamaan', image: null },
+      { name: 'Persiapan PTN', image: null },
+    ],
   },
 }
 
@@ -107,18 +161,30 @@ interface EducationUnit {
   phone: string
   email: string
   image: string | null
-  facilities: string[]
-  programs: string[]
+  facilities: FacilityItem[]
+  programs: ProgramItem[]
 }
 
-// Helper function to safely parse JSON array
-function safeParseJsonArray(value: unknown): string[] {
+// Helper function to safely parse JSON array with backward compatibility
+function safeParseItems(value: unknown): (FacilityItem | ProgramItem)[] {
   if (!value) return []
-  if (Array.isArray(value)) return value
+  if (Array.isArray(value)) {
+    // Check if it's old format (string array) or new format (object array)
+    if (value.length > 0 && typeof value[0] === 'string') {
+      return value.map((name: string) => ({ name, image: null }))
+    }
+    return value
+  }
   if (typeof value === 'string') {
     try {
       const parsed = JSON.parse(value)
-      return Array.isArray(parsed) ? parsed : []
+      if (Array.isArray(parsed)) {
+        if (parsed.length > 0 && typeof parsed[0] === 'string') {
+          return parsed.map((name: string) => ({ name, image: null }))
+        }
+        return parsed
+      }
+      return []
     } catch {
       return []
     }
@@ -161,8 +227,8 @@ export default function EducationUnitDetailPage() {
             phone: data.data.phone || staticUnit?.phone || '',
             email: data.data.email || staticUnit?.email || '',
             image: data.data.image || null,
-            facilities: safeParseJsonArray(data.data.facilities),
-            programs: safeParseJsonArray(data.data.programs),
+            facilities: safeParseItems(data.data.facilities) as FacilityItem[],
+            programs: safeParseItems(data.data.programs) as ProgramItem[],
           })
         } else {
           setUnit(staticUnit || null)
@@ -223,6 +289,11 @@ export default function EducationUnitDetailPage() {
     )
   }
 
+  // Check if programs have images
+  const hasProgramImages = unit.programs.some(p => p.image)
+  // Check if facilities have images
+  const hasFacilityImages = unit.facilities.some(f => f.image)
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -279,14 +350,44 @@ export default function EducationUnitDetailPage() {
               </CardHeader>
               <CardContent>
                 {unit.programs && unit.programs.length > 0 ? (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {unit.programs.map((prog, i) => (
-                      <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                        <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{prog}</span>
-                      </div>
-                    ))}
-                  </div>
+                  hasProgramImages ? (
+                    // Grid layout when there are images
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {unit.programs.map((prog, i) => (
+                        <div key={i} className="rounded-lg border overflow-hidden bg-card">
+                          {prog.image ? (
+                            <div className="aspect-video relative">
+                              <img
+                                src={prog.image}
+                                alt={prog.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="aspect-video bg-muted flex items-center justify-center">
+                              <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="p-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              <span className="text-sm font-medium">{prog.name}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Simple list layout when no images
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {unit.programs.map((prog, i) => (
+                        <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
+                          <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{prog.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
                 ) : (
                   <p className="text-muted-foreground text-sm">Tidak ada program</p>
                 )}
@@ -303,13 +404,40 @@ export default function EducationUnitDetailPage() {
               </CardHeader>
               <CardContent>
                 {unit.facilities && unit.facilities.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {unit.facilities.map((facility, i) => (
-                      <Badge key={i} variant="secondary" className="px-4 py-2">
-                        {facility}
-                      </Badge>
-                    ))}
-                  </div>
+                  hasFacilityImages ? (
+                    // Grid layout when there are images
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {unit.facilities.map((facility, i) => (
+                        <div key={i} className="rounded-lg border overflow-hidden bg-card">
+                          {facility.image ? (
+                            <div className="aspect-video relative">
+                              <img
+                                src={facility.image}
+                                alt={facility.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="aspect-video bg-muted flex items-center justify-center">
+                              <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="p-3">
+                            <span className="text-sm font-medium">{facility.name}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    // Simple badges layout when no images
+                    <div className="flex flex-wrap gap-2">
+                      {unit.facilities.map((facility, i) => (
+                        <Badge key={i} variant="secondary" className="px-4 py-2">
+                          {facility.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  )
                 ) : (
                   <p className="text-muted-foreground text-sm">Tidak ada fasilitas</p>
                 )}
