@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -54,19 +54,15 @@ const categoryLabels: Record<string, string> = {
   prestasi: 'Prestasi',
 }
 
-interface PageProps {
-  params: Promise<{ slug: string }>
-}
-
-export default function NewsDetailPage({ params }: PageProps) {
-  const resolvedParams = use(params)
+export default function NewsDetailPage() {
+  const params = useParams()
   const router = useRouter()
+  const slug = params.slug as string
+  
   const [news, setNews] = useState<NewsDetail | null>(null)
   const [relatedNews, setRelatedNews] = useState<RelatedNews[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  const slug = resolvedParams.slug
 
   useEffect(() => {
     if (slug) {
