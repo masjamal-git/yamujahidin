@@ -90,6 +90,16 @@ function parseJsonArray(value: string | null | undefined): string[] {
   }
 }
 
+// Helper function to validate image string
+function validateImage(image: string | null): string | null {
+  if (!image) return null
+  // Check if it's a valid base64 image or URL
+  if (image.startsWith('data:image') || image.startsWith('http')) {
+    return image
+  }
+  return null
+}
+
 // Server Component - fetches data from database
 export default async function EducationUnitPage({ 
   params 
@@ -116,13 +126,13 @@ export default async function EducationUnitPage({
     if (dbUnit) {
       unit = {
         id: dbUnit.id,
-        name: dbUnit.name,
+        name: dbUnit.name || staticEducationUnits[type].name,
         type: dbUnit.type,
         description: dbUnit.description || staticEducationUnits[type].description,
         address: dbUnit.address || staticEducationUnits[type].address,
         phone: dbUnit.phone || staticEducationUnits[type].phone,
         email: dbUnit.email || staticEducationUnits[type].email,
-        image: dbUnit.image,
+        image: validateImage(dbUnit.image),
         facilities: parseJsonArray(dbUnit.facilities),
         programs: parseJsonArray(dbUnit.programs),
       }
