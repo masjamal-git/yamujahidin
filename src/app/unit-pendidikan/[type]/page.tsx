@@ -1,8 +1,12 @@
 import { notFound } from 'next/navigation'
 import EducationUnitClient from './client'
 
-// Static data for education units
-const educationUnitsData: Record<string, {
+// Disable caching to always fetch fresh data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+// Static fallback data for education units
+const staticEducationUnits: Record<string, {
   id: string
   name: string
   type: string
@@ -74,14 +78,58 @@ export function generateStaticParams() {
   ]
 }
 
-// Server Component - fetches data and passes to client
+// Helper function to parse JSON safely
+function parseJsonArray(value: string | null | undefined): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+// Server Component - fetches data from database
 export default async function EducationUnitPage({ 
   params 
 }: { 
   params: Promise<{ type: string }> 
 }) {
   const { type } = await params
-  const unit = educationUnitsData[type]
+  
+  // Validate type
+  const validTypes = ['ponpes', 'mi', 'mts', 'ma']
+  if (!validTypes.includes(type)) {
+    notFound()
+  }
+  
+  let unit = staticEducationUnits[type]
+  
+  // Try to fetch from database
+  try {
+    const { db } = await import('@/lib/db')
+    const dbUnit = await db.educationUnit.findUnique({
+      where: { type: type },
+    })
+    
+    if (dbUnit) {
+      unit = {
+        id: dbUnit.id,
+        name: dbUnit.name,
+        type: dbUnit.type,
+        description: dbUnit.description || staticEducationUnits[type].description,
+        address: dbUnit.address || staticEducationUnits[type].address,
+        phone: dbUnit.phone || staticEducationUnits[type].phone,
+        email: dbUnit.email || staticEducationUnits[type].email,
+        image: dbUnit.image,
+        facilities: parseJsonArray(dbUnit.facilities),
+        programs: parseJsonArray(dbUnit.programs),
+      }
+    }
+  } catch (error) {
+    console.log('Database not available, using static data')
+  }
   
   if (!unit) {
     notFound()
