@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -78,14 +77,9 @@ export default function AdminLoginPage() {
       
       <Card className="w-full max-w-md relative z-10">
         <CardHeader className="text-center">
-          <div className="mx-auto w-24 h-24 relative rounded-2xl overflow-hidden bg-white mb-4 shadow-lg">
-  <Image
-    src="/images/logo-yayasan.png"
-    alt="Logo Yayasan Al Mujahidin"
-    fill
-    className="object-contain"
-  />
-</div>
+          <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-primary font-bold text-3xl mb-4 shadow-lg">
+            ي
+          </div>
           <CardTitle className="text-2xl">Panel Admin</CardTitle>
           <CardDescription>
             Yayasan Al Mujahidin Kalimantan Timur
@@ -100,7 +94,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="masjamal@yalmuja.sch.id"
+                  placeholder="admin@yalmuja.sch.id"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -141,7 +135,10 @@ export default function AdminLoginPage() {
               )}
             </Button>
           </form>
-          
+          <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
+            <p>Demo login:</p>
+            <p className="font-mono">admin@yalmuja.sch.id / admin123</p>
+          </div>
         </CardContent>
       </Card>
     </div>
