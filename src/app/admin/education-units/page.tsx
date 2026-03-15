@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Loader2, Building, Save, Image as ImageIcon, Plus, X, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+
+interface FacilityItem {
+  name: string
+  image: string | null
+}
+
+interface ProgramItem {
+  name: string
+  image: string | null
+}
 
 interface EducationUnit {
   id: string
@@ -42,8 +52,8 @@ const defaultUnits: EducationUnit[] = [
     phone: '(0541) 123456',
     email: 'ponpes@yalmuja.sch.id',
     image: null,
-    facilities: '["Masjid", "Asrama Putra", "Asrama Putri", "Ruang Kelas", "Perpustakaan", "Lapangan Olahraga"]',
-    programs: '["Tahfidz Al-Quran", "Kajian Kitab Kuning", "Bahasa Arab", "Bahasa Inggris"]',
+    facilities: '[{"name":"Masjid","image":null},{"name":"Asrama Putra","image":null},{"name":"Asrama Putri","image":null},{"name":"Ruang Kelas","image":null},{"name":"Perpustakaan","image":null},{"name":"Lapangan Olahraga","image":null}]',
+    programs: '[{"name":"Tahfidz Al-Quran","image":null},{"name":"Kajian Kitab Kuning","image":null},{"name":"Bahasa Arab","image":null},{"name":"Bahasa Inggris","image":null}]',
     isActive: true,
   },
   {
@@ -55,8 +65,8 @@ const defaultUnits: EducationUnit[] = [
     phone: '(0541) 123456',
     email: 'mi@yalmuja.sch.id',
     image: null,
-    facilities: '["Ruang Kelas Ber-AC", "Perpustakaan", "Laboratorium Komputer", "Lapangan Bermain"]',
-    programs: '["Kurikulum Nasional", "Tahfidz Al-Quran", "Bahasa Arab", "Praktek Ibadah"]',
+    facilities: '[{"name":"Ruang Kelas Ber-AC","image":null},{"name":"Perpustakaan","image":null},{"name":"Laboratorium Komputer","image":null},{"name":"Lapangan Bermain","image":null}]',
+    programs: '[{"name":"Kurikulum Nasional","image":null},{"name":"Tahfidz Al-Quran","image":null},{"name":"Bahasa Arab","image":null},{"name":"Praktek Ibadah","image":null}]',
     isActive: true,
   },
   {
@@ -68,8 +78,8 @@ const defaultUnits: EducationUnit[] = [
     phone: '(0541) 123456',
     email: 'mts@yalmuja.sch.id',
     image: null,
-    facilities: '["Ruang Kelas Ber-AC", "Laboratorium IPA", "Laboratorium Komputer", "Perpustakaan"]',
-    programs: '["Kurikulum Nasional", "Tahfidz Al-Quran", "Bahasa Arab & Inggris", "IPA & IPS"]',
+    facilities: '[{"name":"Ruang Kelas Ber-AC","image":null},{"name":"Laboratorium IPA","image":null},{"name":"Laboratorium Komputer","image":null},{"name":"Perpustakaan","image":null}]',
+    programs: '[{"name":"Kurikulum Nasional","image":null},{"name":"Tahfidz Al-Quran","image":null},{"name":"Bahasa Arab & Inggris","image":null},{"name":"IPA & IPS","image":null}]',
     isActive: true,
   },
   {
@@ -81,22 +91,45 @@ const defaultUnits: EducationUnit[] = [
     phone: '(0541) 123456',
     email: 'ma@yalmuja.sch.id',
     image: null,
-    facilities: '["Ruang Kelas Ber-AC", "Laboratorium IPA", "Laboratorium Bahasa", "Aula Serbaguna"]',
-    programs: '["Jurusan IPA", "Jurusan IPS", "Jurusan Keagamaan", "Persiapan PTN"]',
+    facilities: '[{"name":"Ruang Kelas Ber-AC","image":null},{"name":"Laboratorium IPA","image":null},{"name":"Laboratorium Bahasa","image":null},{"name":"Aula Serbaguna","image":null}]',
+    programs: '[{"name":"Jurusan IPA","image":null},{"name":"Jurusan IPS","image":null},{"name":"Jurusan Keagamaan","image":null},{"name":"Persiapan PTN","image":null}]',
     isActive: true,
   },
 ]
+
+// Helper function to parse JSON with backward compatibility
+function parseItems(jsonString: string | null): FacilityItem[] | ProgramItem[] {
+  if (!jsonString) return []
+  try {
+    const parsed = JSON.parse(jsonString)
+    if (Array.isArray(parsed)) {
+      // Check if it's old format (string array) or new format (object array)
+      if (parsed.length > 0 && typeof parsed[0] === 'string') {
+        // Convert old format to new format
+        return parsed.map((name: string) => ({ name, image: null }))
+      }
+      return parsed
+    }
+    return []
+  } catch {
+    return []
+  }
+}
 
 export default function AdminEducationUnitsPage() {
   const [units, setUnits] = useState<EducationUnit[]>([])
   const [activeUnit, setActiveUnit] = useState<EducationUnit | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [facilities, setFacilities] = useState<string[]>([])
-  const [programs, setPrograms] = useState<string[]>([])
+  const [facilities, setFacilities] = useState<FacilityItem[]>([])
+  const [programs, setPrograms] = useState<ProgramItem[]>([])
   const [newFacility, setNewFacility] = useState('')
   const [newProgram, setNewProgram] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  
+  // Refs for file inputs
+  const facilityImageRefs = useRef<(HTMLInputElement | null)[]>([])
+  const programImageRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
     fetchUnits()
@@ -128,16 +161,8 @@ export default function AdminEducationUnitsPage() {
   }
 
   const parseJsonFields = (unit: EducationUnit) => {
-    try {
-      setFacilities(unit.facilities ? JSON.parse(unit.facilities) : [])
-    } catch {
-      setFacilities([])
-    }
-    try {
-      setPrograms(unit.programs ? JSON.parse(unit.programs) : [])
-    } catch {
-      setPrograms([])
-    }
+    setFacilities(parseItems(unit.facilities) as FacilityItem[])
+    setPrograms(parseItems(unit.programs) as ProgramItem[])
     setImagePreview(unit.image)
   }
 
@@ -155,7 +180,7 @@ export default function AdminEducationUnitsPage() {
     }
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -174,9 +199,37 @@ export default function AdminEducationUnitsPage() {
     }
   }
 
+  const handleItemImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number,
+    type: 'facility' | 'program'
+  ) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Ukuran file maksimal 5MB')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64 = reader.result as string
+        if (type === 'facility') {
+          const newFacilities = [...facilities]
+          newFacilities[index] = { ...newFacilities[index], image: base64 }
+          setFacilities(newFacilities)
+        } else {
+          const newPrograms = [...programs]
+          newPrograms[index] = { ...newPrograms[index], image: base64 }
+          setPrograms(newPrograms)
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const addFacility = () => {
     if (newFacility.trim()) {
-      setFacilities([...facilities, newFacility.trim()])
+      setFacilities([...facilities, { name: newFacility.trim(), image: null }])
       setNewFacility('')
     }
   }
@@ -185,15 +238,27 @@ export default function AdminEducationUnitsPage() {
     setFacilities(facilities.filter((_, i) => i !== index))
   }
 
+  const removeFacilityImage = (index: number) => {
+    const newFacilities = [...facilities]
+    newFacilities[index] = { ...newFacilities[index], image: null }
+    setFacilities(newFacilities)
+  }
+
   const addProgram = () => {
     if (newProgram.trim()) {
-      setPrograms([...programs, newProgram.trim()])
+      setPrograms([...programs, { name: newProgram.trim(), image: null }])
       setNewProgram('')
     }
   }
 
   const removeProgram = (index: number) => {
     setPrograms(programs.filter((_, i) => i !== index))
+  }
+
+  const removeProgramImage = (index: number) => {
+    const newPrograms = [...programs]
+    newPrograms[index] = { ...newPrograms[index], image: null }
+    setPrograms(newPrograms)
   }
 
   const handleSave = async () => {
@@ -333,15 +398,15 @@ export default function AdminEducationUnitsPage() {
                   </CardContent>
                 </Card>
 
-                {/* Image */}
+                {/* Main Image */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <ImageIcon className="h-5 w-5" />
-                      Gambar
+                      Gambar Utama
                     </CardTitle>
                     <CardDescription>
-                      Upload gambar unit pendidikan (maks. 5MB)
+                      Upload gambar utama unit pendidikan (maks. 5MB)
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -372,7 +437,7 @@ export default function AdminEducationUnitsPage() {
                         <Input
                           type="file"
                           accept="image/*"
-                          onChange={handleImageChange}
+                          onChange={handleMainImageChange}
                           className="flex-1"
                         />
                       </div>
@@ -380,7 +445,7 @@ export default function AdminEducationUnitsPage() {
                   </CardContent>
                 </Card>
 
-                {/* Programs */}
+                {/* Programs with Images */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -388,24 +453,74 @@ export default function AdminEducationUnitsPage() {
                       Program Unggulan
                     </CardTitle>
                     <CardDescription>
-                      Daftar program yang ditawarkan
+                      Daftar program yang ditawarkan dengan gambar
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
+                      {/* Existing Programs */}
+                      <div className="space-y-3">
                         {programs.map((prog, i) => (
-                          <Badge key={i} variant="secondary" className="px-3 py-1">
-                            {prog}
-                            <button
-                              onClick={() => removeProgram(i)}
-                              className="ml-2 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
+                          <div key={i} className="flex flex-col sm:flex-row gap-3 p-3 border rounded-lg">
+                            {/* Image Section */}
+                            <div className="w-full sm:w-24 h-24 flex-shrink-0">
+                              {prog.image ? (
+                                <div className="relative w-full h-full rounded-lg overflow-hidden border">
+                                  <img
+                                    src={prog.image}
+                                    alt={prog.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1 right-1 h-5 w-5"
+                                    onClick={() => removeProgramImage(i)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <label className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground mt-1">Upload</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    ref={el => { programImageRefs.current[i] = el }}
+                                    onChange={(e) => handleItemImageChange(e, i, 'program')}
+                                  />
+                                </label>
+                              )}
+                            </div>
+                            
+                            {/* Name Section */}
+                            <div className="flex-1 flex items-center gap-2">
+                              <Input
+                                value={prog.name}
+                                onChange={(e) => {
+                                  const newPrograms = [...programs]
+                                  newPrograms[i] = { ...newPrograms[i], name: e.target.value }
+                                  setPrograms(newPrograms)
+                                }}
+                                placeholder="Nama program..."
+                                className="flex-1"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeProgram(i)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
                         ))}
                       </div>
+                      
+                      {/* Add New Program */}
                       <div className="flex gap-2">
                         <Input
                           placeholder="Tambah program baru..."
@@ -421,7 +536,7 @@ export default function AdminEducationUnitsPage() {
                   </CardContent>
                 </Card>
 
-                {/* Facilities */}
+                {/* Facilities with Images */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -429,24 +544,74 @@ export default function AdminEducationUnitsPage() {
                       Fasilitas
                     </CardTitle>
                     <CardDescription>
-                      Daftar fasilitas yang tersedia
+                      Daftar fasilitas yang tersedia dengan gambar
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
+                      {/* Existing Facilities */}
+                      <div className="space-y-3">
                         {facilities.map((facility, i) => (
-                          <Badge key={i} variant="secondary" className="px-3 py-1">
-                            {facility}
-                            <button
-                              onClick={() => removeFacility(i)}
-                              className="ml-2 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
+                          <div key={i} className="flex flex-col sm:flex-row gap-3 p-3 border rounded-lg">
+                            {/* Image Section */}
+                            <div className="w-full sm:w-24 h-24 flex-shrink-0">
+                              {facility.image ? (
+                                <div className="relative w-full h-full rounded-lg overflow-hidden border">
+                                  <img
+                                    src={facility.image}
+                                    alt={facility.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-1 right-1 h-5 w-5"
+                                    onClick={() => removeFacilityImage(i)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <label className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground mt-1">Upload</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    ref={el => { facilityImageRefs.current[i] = el }}
+                                    onChange={(e) => handleItemImageChange(e, i, 'facility')}
+                                  />
+                                </label>
+                              )}
+                            </div>
+                            
+                            {/* Name Section */}
+                            <div className="flex-1 flex items-center gap-2">
+                              <Input
+                                value={facility.name}
+                                onChange={(e) => {
+                                  const newFacilities = [...facilities]
+                                  newFacilities[i] = { ...newFacilities[i], name: e.target.value }
+                                  setFacilities(newFacilities)
+                                }}
+                                placeholder="Nama fasilitas..."
+                                className="flex-1"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeFacility(i)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
                         ))}
                       </div>
+                      
+                      {/* Add New Facility */}
                       <div className="flex gap-2">
                         <Input
                           placeholder="Tambah fasilitas baru..."
