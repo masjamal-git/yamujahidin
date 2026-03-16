@@ -41,6 +41,8 @@ async function initializeDatabase() {
       { key: 'profile_vision', value: 'Menjadi lembaga pendidikan Islam terkemuka yang menghasilkan generasi berilmu, berakhlak, dan berwawasan global.', type: 'textarea', group: 'profile' },
       { key: 'profile_mission', value: '1. Menyelenggarakan pendidikan Islam yang berkualitas\n2. Mengembangkan potensi siswa secara optimal\n3. Membangun lingkungan belajar yang kondusif\n4. Menanamkan nilai-nilai Islami dalam kehidupan sehari-hari', type: 'textarea', group: 'profile' },
       { key: 'profile_history', value: 'Yayasan Al Mujahidin Kalimantan Timur didirikan pada tahun 1985 oleh para ulama dan tokoh masyarakat yang peduli terhadap pendidikan Islam. Selama hampir 40 tahun, yayasan ini telah mendidik ribuan alumni yang tersebar di seluruh Indonesia.', type: 'textarea', group: 'profile' },
+      { key: 'ppdb_academic_year', value: '2024/2025', type: 'text', group: 'ppdb' },
+      { key: 'ppdb_is_open', value: 'true', type: 'text', group: 'ppdb' },
     ]
 
     for (const setting of defaultSettings) {
