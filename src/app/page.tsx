@@ -88,6 +88,7 @@ interface Settings {
   profile_history: string
   ppdb_academic_year: string
   ppdb_is_open: string
+  map_embed_url: string
   video_1_url: string
   video_1_title: string
   video_2_url: string
@@ -1381,13 +1382,32 @@ export default function Home() {
                   </CardContent>
                 </Card>
 
-                {/* Map placeholder */}
+                {/* Map */}
                 <Card className="overflow-hidden">
-                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin className="h-12 w-12 text-primary/30 mx-auto mb-2" />
-                      <p className="text-muted-foreground">Peta Lokasi</p>
-                    </div>
+                  <div className="aspect-video bg-muted relative">
+                    {settings?.map_embed_url ? (
+                      <iframe
+                        src={settings.map_embed_url}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        className="absolute inset-0"
+                      />
+                    ) : (
+                      <iframe
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(settings?.site_address || 'Jl. Pondok Pesantren No. 1, Samarinda, Kalimantan Timur')}&output=embed`}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        className="absolute inset-0"
+                      />
+                    )}
                   </div>
                 </Card>
               </motion.div>
