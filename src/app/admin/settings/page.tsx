@@ -33,6 +33,8 @@ interface Settings {
   video_2_title: string
   video_3_url: string
   video_3_title: string
+  video_4_url: string
+  video_4_title: string
 }
 
 export default function AdminSettingsPage() {
@@ -58,6 +60,8 @@ export default function AdminSettingsPage() {
     video_2_title: '',
     video_3_url: '',
     video_3_title: '',
+    video_4_url: '',
+    video_4_title: '',
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -384,7 +388,7 @@ export default function AdminSettingsPage() {
                 Video YouTube
               </CardTitle>
               <CardDescription>
-                Tambahkan 3 video YouTube untuk ditampilkan di homepage
+                Tambahkan 4 video YouTube untuk ditampilkan di homepage
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -464,6 +468,33 @@ export default function AdminSettingsPage() {
                       placeholder="https://www.youtube.com/watch?v=..."
                       value={settings.video_3_url}
                       onChange={(e) => setSettings({ ...settings, video_3_url: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Video 4 */}
+              <div className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Video 4</Badge>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video_4_title">Judul Video</Label>
+                    <Input
+                      id="video_4_title"
+                      placeholder="Judul video"
+                      value={settings.video_4_title}
+                      onChange={(e) => setSettings({ ...settings, video_4_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video_4_url">URL YouTube</Label>
+                    <Input
+                      id="video_4_url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      value={settings.video_4_url}
+                      onChange={(e) => setSettings({ ...settings, video_4_url: e.target.value })}
                     />
                   </div>
                 </div>
