@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Save, Loader2, Building, Phone, Mail, Globe, MessageCircle } from 'lucide-react'
+import { Save, Loader2, Building, Phone, Mail, Globe, MessageCircle, GraduationCap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -24,6 +24,8 @@ interface Settings {
   profile_vision: string
   profile_mission: string
   profile_history: string
+  ppdb_academic_year: string
+  ppdb_is_open: string
 }
 
 export default function AdminSettingsPage() {
@@ -41,6 +43,8 @@ export default function AdminSettingsPage() {
     profile_vision: '',
     profile_mission: '',
     profile_history: '',
+    ppdb_academic_year: '2024/2025',
+    ppdb_is_open: 'true',
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -54,7 +58,10 @@ export default function AdminSettingsPage() {
       const res = await fetch('/api/settings')
       const data = await res.json()
       if (data.success) {
-        setSettings(data.data as Settings)
+        setSettings(prev => ({
+          ...prev,
+          ...(data.data as Settings)
+        }))
       }
     } catch (error) {
       console.error('Error fetching settings:', error)
@@ -73,7 +80,7 @@ export default function AdminSettingsPage() {
         fetch('/api/admin/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key, value }),
+          body: JSON.stringify({ key, value, group: key.startsWith('ppdb_') ? 'ppdb' : key.startsWith('profile_') ? 'profile' : key.includes('_url') ? 'social' : 'general' }),
         })
       )
       
@@ -117,11 +124,12 @@ export default function AdminSettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general">Umum</TabsTrigger>
           <TabsTrigger value="contact">Kontak</TabsTrigger>
           <TabsTrigger value="social">Media Sosial</TabsTrigger>
           <TabsTrigger value="profile">Profil</TabsTrigger>
+          <TabsTrigger value="ppdb">PPDB</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -300,6 +308,49 @@ export default function AdminSettingsPage() {
                   value={settings.profile_history}
                   onChange={(e) => setSettings({ ...settings, profile_history: e.target.value })}
                 />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ppdb">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5" />
+                Pengaturan PPDB
+              </CardTitle>
+              <CardDescription>
+                Pengaturan Penerimaan Peserta Didik Baru
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="ppdb_academic_year">Tahun Ajaran</Label>
+                <Input
+                  id="ppdb_academic_year"
+                  placeholder="contoh: 2024/2025"
+                  value={settings.ppdb_academic_year}
+                  onChange={(e) => setSettings({ ...settings, ppdb_academic_year: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Format: tahun awal/tahun akhir (contoh: 2024/2025)
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ppdb_is_open">Status Pendaftaran</Label>
+                <select
+                  id="ppdb_is_open"
+                  value={settings.ppdb_is_open}
+                  onChange={(e) => setSettings({ ...settings, ppdb_is_open: e.target.value })}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="true">Dibuka</option>
+                  <option value="false">Ditutup</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Jika ditutup, form pendaftaran tidak akan ditampilkan
+                </p>
               </div>
             </CardContent>
           </Card>
