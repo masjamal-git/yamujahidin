@@ -35,6 +35,7 @@ async function initializeDatabase() {
       { key: 'site_phone', value: '(0541) 123456', type: 'text', group: 'contact' },
       { key: 'site_email', value: 'info@yalmuja.sch.id', type: 'text', group: 'contact' },
       { key: 'site_whatsapp', value: '6281234567890', type: 'text', group: 'contact' },
+      { key: 'map_embed_url', value: '', type: 'text', group: 'contact' },
       { key: 'facebook_url', value: 'https://facebook.com/yalmuja', type: 'text', group: 'social' },
       { key: 'instagram_url', value: 'https://instagram.com/yalmuja', type: 'text', group: 'social' },
       { key: 'youtube_url', value: 'https://youtube.com/yalmuja', type: 'text', group: 'social' },
@@ -43,6 +44,14 @@ async function initializeDatabase() {
       { key: 'profile_history', value: 'Yayasan Al Mujahidin Kalimantan Timur didirikan pada tahun 1985 oleh para ulama dan tokoh masyarakat yang peduli terhadap pendidikan Islam. Selama hampir 40 tahun, yayasan ini telah mendidik ribuan alumni yang tersebar di seluruh Indonesia.', type: 'textarea', group: 'profile' },
       { key: 'ppdb_academic_year', value: '2024/2025', type: 'text', group: 'ppdb' },
       { key: 'ppdb_is_open', value: 'true', type: 'text', group: 'ppdb' },
+      { key: 'video_1_url', value: '', type: 'text', group: 'video' },
+      { key: 'video_1_title', value: '', type: 'text', group: 'video' },
+      { key: 'video_2_url', value: '', type: 'text', group: 'video' },
+      { key: 'video_2_title', value: '', type: 'text', group: 'video' },
+      { key: 'video_3_url', value: '', type: 'text', group: 'video' },
+      { key: 'video_3_title', value: '', type: 'text', group: 'video' },
+      { key: 'video_4_url', value: '', type: 'text', group: 'video' },
+      { key: 'video_4_title', value: '', type: 'text', group: 'video' },
     ]
 
     for (const setting of defaultSettings) {
