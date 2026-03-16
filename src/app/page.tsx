@@ -9,7 +9,7 @@ import {
   Facebook, Instagram, Youtube, GraduationCap, BookOpen, Users,
   Award, Calendar, ArrowRight, Send, Eye, Heart, Building,
   School, Home as HomeIcon, Image as ImageIcon, FileText,
-  UserPlus, Gift, MessageCircle, Sun, Moon, HandHeart
+  UserPlus, Gift, MessageCircle, Sun, Moon, HandHeart, Play
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -60,6 +60,18 @@ interface Scholarship {
   deadline: string | null
 }
 
+interface VideoItem {
+  id: string
+  title: string
+  description: string | null
+  youtubeUrl: string
+  youtubeId: string | null
+  thumbnail: string | null
+  category: string
+  isActive: boolean
+  order: number
+}
+
 interface Settings {
   site_name: string
   site_tagline: string
@@ -76,6 +88,12 @@ interface Settings {
   profile_history: string
   ppdb_academic_year: string
   ppdb_is_open: string
+  video_1_url: string
+  video_1_title: string
+  video_2_url: string
+  video_2_title: string
+  video_3_url: string
+  video_3_title: string
 }
 
 // Navigation items
@@ -85,6 +103,7 @@ const navItems = [
   { name: 'Unit Pendidikan', href: '#unit-pendidikan', icon: School },
   { name: 'Berita', href: '#berita', icon: FileText },
   { name: 'Galeri', href: '#galeri', icon: ImageIcon },
+  { name: 'Video', href: '#video', icon: Play },
   { name: 'PPDB', href: '#ppdb', icon: UserPlus },
   { name: 'Beasiswa', href: '#beasiswa', icon: Gift },
   { name: 'Kontak', href: '#kontak', icon: MessageCircle },
@@ -104,6 +123,7 @@ export default function Home() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([])
   const [settings, setSettings] = useState<Settings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
@@ -115,17 +135,15 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [newsRes, galleryRes, unitsRes, scholarshipsRes, settingsRes] = await Promise.all([
+        const [newsRes, galleryRes, scholarshipsRes, settingsRes] = await Promise.all([
           fetch('/api/news?limit=6'),
           fetch('/api/gallery?limit=12'),
-          fetch('/api/settings'),
           fetch('/api/scholarship'),
           fetch('/api/settings'),
         ])
         
         const newsData = await newsRes.json()
         const galleryData = await galleryRes.json()
-        const unitsData = await unitsRes.json()
         const scholarshipsData = await scholarshipsRes.json()
         const settingsData = await settingsRes.json()
         
@@ -240,6 +258,45 @@ export default function Home() {
     }
     return icons[type] || <School className="h-8 w-8" />
   }
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeId = (url: string): string | null => {
+    if (!url) return null
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+    ]
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern)
+      if (match) return match[1]
+    }
+    return null
+  }
+
+  // Get videos from settings
+  const getVideosFromSettings = () => {
+    if (!settings) return []
+    const videos = []
+    for (let i = 1; i <= 3; i++) {
+      const urlKey = `video_${i}_url` as keyof Settings
+      const titleKey = `video_${i}_title` as keyof Settings
+      const url = settings[urlKey] as string
+      const title = settings[titleKey] as string
+      if (url) {
+        const youtubeId = extractYouTubeId(url)
+        videos.push({
+          id: `video-${i}`,
+          title: title || `Video ${i}`,
+          youtubeId,
+          thumbnail: youtubeId ? `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg` : null,
+        })
+      }
+    }
+    return videos
+  }
+
+  const videosFromSettings = getVideosFromSettings()
 
   // Contact form submit
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -604,7 +661,7 @@ export default function Home() {
               >
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-70 h-70 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
+                    <div className="w-24 h-24 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
                       <Image
                         src="/images/logo-yayasan.png"
                         alt="Logo Yayasan Al Mujahidin"
@@ -872,6 +929,105 @@ export default function Home() {
             </Carousel>
           </div>
         </section>
+
+        {/* Video Section */}
+        <section id="video" className="py-20">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <Badge className="mb-4">Video</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Video Kegiatan</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Lihat dokumentasi video kegiatan yayasan
+              </p>
+            </motion.div>
+
+            {videosFromSettings.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {videosFromSettings.map((video, index) => (
+                  <motion.div
+                    key={video.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className="group cursor-pointer"
+                    onClick={() => setSelectedVideoIndex(index)}
+                  >
+                    <Card className="overflow-hidden h-full hover:shadow-lg transition-all duration-300">
+                      <div className="aspect-video relative bg-muted">
+                        {video.thumbnail ? (
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
+                            <Play className="h-12 w-12 text-primary/30" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                          <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
+                            <Play className="h-8 w-8 text-white fill-white" />
+                          </div>
+                        </div>
+                      </div>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold line-clamp-2 mb-1">{video.title}</h3>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Play className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-muted-foreground">Belum ada video yang tersedia</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Video Modal */}
+        {selectedVideoIndex !== null && videosFromSettings[selectedVideoIndex] && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setSelectedVideoIndex(null)}
+          >
+            <div 
+              className="relative w-full max-w-4xl bg-card rounded-lg overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setSelectedVideoIndex(null)}
+                className="absolute top-2 right-2 z-10 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <div className="aspect-video">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videosFromSettings[selectedVideoIndex].youtubeId}?autoplay=1`}
+                  title={videosFromSettings[selectedVideoIndex].title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="text-xl font-semibold mb-2">{videosFromSettings[selectedVideoIndex].title}</h3>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* PPDB Section */}
         <section id="ppdb" className="py-20">
