@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Search, Users, Eye, Download, MoreHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Search, Users, Eye, Download, MoreHorizontal, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,6 +29,8 @@ import {
 } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
 
 interface Student {
   id: string
@@ -64,6 +66,7 @@ interface Student {
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isExporting, setIsExporting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
@@ -158,6 +161,104 @@ export default function AdminStudentsPage() {
     rejected: students.filter(s => s.status === 'rejected').length,
   }
 
+  const handleExportExcel = async () => {
+    if (filteredStudents.length === 0) {
+      toast.error('Tidak ada data untuk diekspor')
+      return
+    }
+
+    setIsExporting(true)
+
+    try {
+      // Prepare data for Excel
+      const exportData = filteredStudents.map((student, index) => ({
+        'No': index + 1,
+        'No. Pendaftaran': student.registrationId,
+        'Nama Lengkap': student.name,
+        'NISN': student.nisn || '-',
+        'NIK': student.nik || '-',
+        'Tempat Lahir': student.placeOfBirth || '-',
+        'Tanggal Lahir': student.dateOfBirth || '-',
+        'Jenis Kelamin': student.gender === 'L' ? 'Laki-laki' : student.gender === 'P' ? 'Perempuan' : '-',
+        'Agama': student.religion || '-',
+        'Alamat': student.address || '-',
+        'No. HP': student.phone || '-',
+        'Email': student.email || '-',
+        'Nama Ayah': student.fatherName || '-',
+        'Pekerjaan Ayah': student.fatherJob || '-',
+        'No. HP Ayah': student.fatherPhone || '-',
+        'Nama Ibu': student.motherName || '-',
+        'Pekerjaan Ibu': student.motherJob || '-',
+        'No. HP Ibu': student.motherPhone || '-',
+        'Nama Wali': student.guardianName || '-',
+        'Pekerjaan Wali': student.guardianJob || '-',
+        'No. HP Wali': student.guardianPhone || '-',
+        'Asal Sekolah': student.schoolOrigin || '-',
+        'Alamat Sekolah': student.schoolAddress || '-',
+        'Tahun Lulus': student.graduationYear || '-',
+        'Unit Pendidikan': getUnitLabel(student.unitType),
+        'Status': student.status === 'pending' ? 'Menunggu' : student.status === 'accepted' ? 'Diterima' : 'Ditolak',
+        'Catatan': student.notes || '-',
+        'Tanggal Daftar': formatDate(student.createdAt),
+      }))
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(exportData)
+
+      // Set column widths
+      const columnWidths = [
+        { wch: 5 },   // No
+        { wch: 20 },  // No. Pendaftaran
+        { wch: 25 },  // Nama Lengkap
+        { wch: 12 },  // NISN
+        { wch: 18 },  // NIK
+        { wch: 15 },  // Tempat Lahir
+        { wch: 12 },  // Tanggal Lahir
+        { wch: 12 },  // Jenis Kelamin
+        { wch: 10 },  // Agama
+        { wch: 30 },  // Alamat
+        { wch: 15 },  // No. HP
+        { wch: 25 },  // Email
+        { wch: 25 },  // Nama Ayah
+        { wch: 20 },  // Pekerjaan Ayah
+        { wch: 15 },  // No. HP Ayah
+        { wch: 25 },  // Nama Ibu
+        { wch: 20 },  // Pekerjaan Ibu
+        { wch: 15 },  // No. HP Ibu
+        { wch: 25 },  // Nama Wali
+        { wch: 20 },  // Pekerjaan Wali
+        { wch: 15 },  // No. HP Wali
+        { wch: 25 },  // Asal Sekolah
+        { wch: 30 },  // Alamat Sekolah
+        { wch: 12 },  // Tahun Lulus
+        { wch: 20 },  // Unit Pendidikan
+        { wch: 12 },  // Status
+        { wch: 30 },  // Catatan
+        { wch: 15 },  // Tanggal Daftar
+      ]
+      worksheet['!cols'] = columnWidths
+
+      // Create workbook
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Pendaftar')
+
+      // Generate file
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      
+      // Download file
+      const fileName = `Data_Pendaftar_PPDB_${new Date().toISOString().split('T')[0]}.xlsx`
+      saveAs(blob, fileName)
+
+      toast.success('Data berhasil diekspor ke Excel')
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.error('Gagal mengekspor data')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -165,9 +266,18 @@ export default function AdminStudentsPage() {
           <h1 className="text-2xl font-bold">Data Siswa (PPDB)</h1>
           <p className="text-muted-foreground">Kelola pendaftaran peserta didik baru</p>
         </div>
-        <Button variant="outline">
-          <Download className="mr-2 h-4 w-4" />
-          Export Excel
+        <Button variant="outline" onClick={handleExportExcel} disabled={isExporting || filteredStudents.length === 0}>
+          {isExporting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Mengekspor...
+            </>
+          ) : (
+            <>
+              <Download className="mr-2 h-4 w-4" />
+              Export Excel
+            </>
+          )}
         </Button>
       </div>
 
