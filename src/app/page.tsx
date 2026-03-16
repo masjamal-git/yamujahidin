@@ -74,6 +74,8 @@ interface Settings {
   profile_vision: string
   profile_mission: string
   profile_history: string
+  ppdb_academic_year: string
+  ppdb_is_open: string
 }
 
 // Navigation items
@@ -602,7 +604,7 @@ export default function Home() {
               >
                 <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-70 h-70 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
+                    <div className="w-24 h-24 relative rounded-2xl overflow-hidden bg-white mx-auto mb-4">
                       <Image
                         src="/images/logo-yayasan.png"
                         alt="Logo Yayasan Al Mujahidin"
@@ -881,7 +883,7 @@ export default function Home() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <Badge className="mb-4">Tahun Ajaran 2024/2025</Badge>
+              <Badge className="mb-4">Tahun Ajaran {settings?.ppdb_academic_year || '2024/2025'}</Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Pendaftaran Peserta Didik Baru</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Daftarkan diri Anda untuk bergabung bersama keluarga besar Al Mujahidin
@@ -889,6 +891,18 @@ export default function Home() {
             </motion.div>
 
             <div className="max-w-4xl mx-auto">
+              {settings?.ppdb_is_open === 'false' ? (
+                <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950">
+                  <CardContent className="pt-8 pb-8 text-center">
+                    <GraduationCap className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Pendaftaran Belum Dibuka</h3>
+                    <p className="text-muted-foreground">
+                      Pendaftaran Peserta Didik Baru Tahun Ajaran {settings?.ppdb_academic_year || '2024/2025'} belum dibuka.
+                      Silakan hubungi pihak yayasan untuk informasi lebih lanjut.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
               <Card>
                 <CardHeader>
                   <CardTitle>Formulir Pendaftaran</CardTitle>
@@ -1051,6 +1065,7 @@ export default function Home() {
                   </form>
                 </CardContent>
               </Card>
+              )}
             </div>
           </div>
         </section>
