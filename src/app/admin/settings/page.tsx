@@ -27,6 +27,7 @@ interface Settings {
   profile_history: string
   ppdb_academic_year: string
   ppdb_is_open: string
+  map_embed_url: string
   video_1_url: string
   video_1_title: string
   video_2_url: string
@@ -54,6 +55,7 @@ export default function AdminSettingsPage() {
     profile_history: '',
     ppdb_academic_year: '2024/2025',
     ppdb_is_open: 'true',
+    map_embed_url: '',
     video_1_url: '',
     video_1_title: '',
     video_2_url: '',
@@ -98,6 +100,7 @@ export default function AdminSettingsPage() {
         if (key.startsWith('ppdb_')) group = 'ppdb'
         else if (key.startsWith('profile_')) group = 'profile'
         else if (key.startsWith('video_')) group = 'video'
+        else if (key.startsWith('map_')) group = 'contact'
         else if (key.includes('_url')) group = 'social'
         
         return fetch('/api/admin/settings', {
@@ -245,6 +248,19 @@ export default function AdminSettingsPage() {
                   value={settings.site_whatsapp}
                   onChange={(e) => setSettings({ ...settings, site_whatsapp: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="map_embed_url">URL Embed Google Maps</Label>
+                <Textarea
+                  id="map_embed_url"
+                  placeholder="Tempel URL embed dari Google Maps, contoh: https://www.google.com/maps/embed?pb=..."
+                  value={settings.map_embed_url}
+                  onChange={(e) => setSettings({ ...settings, map_embed_url: e.target.value })}
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Buka Google Maps, cari lokasi lembaga, klik "Bagikan" → "Sematkan peta" → salin URL src dari iframe
+                </p>
               </div>
             </CardContent>
           </Card>
