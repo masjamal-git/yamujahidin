@@ -125,14 +125,22 @@ export default function DonasiPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validate amount selection
     const finalAmount = amount === 'custom' ? customAmount : amount
     
-    if (!finalAmount || parseInt(finalAmount) < 10000) {
+    if (!finalAmount || finalAmount === '') {
+      toast.error('Silakan pilih atau masukkan nominal donasi')
+      return
+    }
+
+    const amountNum = parseInt(finalAmount)
+    if (isNaN(amountNum) || amountNum < 10000) {
       toast.error('Minimal donasi Rp 10.000')
       return
     }
 
-    if (!formData.name) {
+    // Validate name
+    if (!formData.name || formData.name.trim() === '') {
       toast.error('Nama lengkap wajib diisi')
       return
     }
@@ -147,7 +155,7 @@ export default function DonasiPage() {
           name: formData.name,
           email: formData.email || null,
           phone: formData.phone || null,
-          amount: finalAmount,
+          amount: amountNum,
           message: formData.message || null,
           paymentMethod: selectedCategory,
         }),
@@ -159,10 +167,11 @@ export default function DonasiPage() {
         setShowSuccess(true)
         toast.success('Terima kasih atas donasi Anda!')
       } else {
-        toast.error('Gagal memproses donasi')
+        toast.error(data.message || 'Gagal memproses donasi')
       }
-    } catch {
-      toast.error('Terjadi kesalahan')
+    } catch (error) {
+      console.error('Donation error:', error)
+      toast.error('Terjadi kesalahan. Silakan coba lagi.')
     } finally {
       setIsSubmitting(false)
     }
