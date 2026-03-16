@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Search, Gift, MoreHorizontal, Edit, Trash2 } from 'lucide-react'
+import { Plus, Search, Gift, MoreHorizontal, Edit, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -43,7 +43,13 @@ export default function AdminScholarshipsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [newScholarship, setNewScholarship] = useState({
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingScholarship, setEditingScholarship] = useState<Scholarship | null>(null)
+  const [deletingScholarship, setDeletingScholarship] = useState<Scholarship | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
     requirements: '',
@@ -71,14 +77,28 @@ export default function AdminScholarshipsPage() {
     }
   }
 
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      requirements: '',
+      benefits: '',
+      deadline: '',
+      isActive: true,
+    })
+    setEditingScholarship(null)
+  }
+
   const handleAdd = async () => {
-    if (!newScholarship.title || !newScholarship.description) {
+    if (!formData.title || !formData.description) {
       toast.error('Judul dan deskripsi harus diisi')
       return
     }
     
+    setIsSaving(true)
+    
     try {
-      const slug = newScholarship.title
+      const slug = formData.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '')
@@ -86,7 +106,7 @@ export default function AdminScholarshipsPage() {
       const res = await fetch('/api/admin/scholarships', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newScholarship, slug: slug + '-' + Date.now() }),
+        body: JSON.stringify({ ...formData, slug: slug + '-' + Date.now() }),
       })
       
       const data = await res.json()
@@ -95,24 +115,173 @@ export default function AdminScholarshipsPage() {
         toast.success('Beasiswa berhasil ditambahkan')
         setScholarships([data.data, ...scholarships])
         setIsAddDialogOpen(false)
-        setNewScholarship({
-          title: '',
-          description: '',
-          requirements: '',
-          benefits: '',
-          deadline: '',
-          isActive: true,
-        })
+        resetForm()
       } else {
-        toast.error('Gagal menambahkan beasiswa')
+        toast.error(data.message || 'Gagal menambahkan beasiswa')
       }
     } catch {
       toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleEdit = (scholarship: Scholarship) => {
+    setEditingScholarship(scholarship)
+    setFormData({
+      title: scholarship.title,
+      description: scholarship.description,
+      requirements: scholarship.requirements || '',
+      benefits: scholarship.benefits || '',
+      deadline: scholarship.deadline || '',
+      isActive: scholarship.isActive,
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdate = async () => {
+    if (!editingScholarship || !formData.title || !formData.description) {
+      toast.error('Judul dan deskripsi harus diisi')
+      return
+    }
+    
+    setIsSaving(true)
+    
+    try {
+      const slug = formData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      
+      const res = await fetch('/api/admin/scholarships', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingScholarship.id,
+          ...formData,
+          slug: slug + '-' + Date.now(),
+        }),
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        toast.success('Beasiswa berhasil diperbarui')
+        setScholarships(scholarships.map(s => s.id === editingScholarship.id ? data.data : s))
+        setIsEditDialogOpen(false)
+        resetForm()
+      } else {
+        toast.error(data.message || 'Gagal memperbarui beasiswa')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleDeleteClick = (scholarship: Scholarship) => {
+    setDeletingScholarship(scholarship)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!deletingScholarship) return
+    
+    setIsSaving(true)
+    
+    try {
+      const res = await fetch(`/api/admin/scholarships?id=${deletingScholarship.id}`, {
+        method: 'DELETE',
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        toast.success('Beasiswa berhasil dihapus')
+        setScholarships(scholarships.filter(s => s.id !== deletingScholarship.id))
+        setIsDeleteDialogOpen(false)
+        setDeletingScholarship(null)
+      } else {
+        toast.error(data.message || 'Gagal menghapus beasiswa')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSaving(false)
     }
   }
 
   const filteredScholarships = scholarships.filter(item =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Form component to be reused
+  const ScholarshipForm = () => (
+    <div className="grid gap-4">
+      <div className="space-y-2">
+        <Label htmlFor="title">Judul *</Label>
+        <Input
+          id="title"
+          placeholder="Nama program beasiswa"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="description">Deskripsi *</Label>
+        <Textarea
+          id="description"
+          placeholder="Deskripsi program beasiswa..."
+          rows={3}
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        />
+      </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="requirements">Persyaratan</Label>
+          <Textarea
+            id="requirements"
+            placeholder="Pisahkan dengan baris baru..."
+            rows={4}
+            value={formData.requirements}
+            onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="benefits">Keuntungan</Label>
+          <Textarea
+            id="benefits"
+            placeholder="Pisahkan dengan baris baru..."
+            rows={4}
+            value={formData.benefits}
+            onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+          />
+        </div>
+      </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="deadline">Deadline</Label>
+          <Input
+            id="deadline"
+            placeholder="31 Desember 2024"
+            value={formData.deadline}
+            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+          />
+        </div>
+        <div className="flex items-center justify-between pt-6">
+          <div>
+            <Label>Status</Label>
+            <p className="text-xs text-muted-foreground">Aktifkan beasiswa</p>
+          </div>
+          <Switch
+            checked={formData.isActive}
+            onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+          />
+        </div>
+      </div>
+    </div>
   )
 
   return (
@@ -122,7 +291,7 @@ export default function AdminScholarshipsPage() {
           <h1 className="text-2xl font-bold">Manajemen Beasiswa</h1>
           <p className="text-muted-foreground">Kelola program beasiswa yayasan</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
+        <Button onClick={() => { resetForm(); setIsAddDialogOpen(true); }}>
           <Plus className="mr-2 h-4 w-4" />
           Tambah Beasiswa
         </Button>
@@ -185,11 +354,14 @@ export default function AdminScholarshipsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(item)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                          <DropdownMenuItem 
+                            className="text-red-600 focus:text-red-600"
+                            onClick={() => handleDeleteClick(item)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Hapus
                           </DropdownMenuItem>
@@ -217,7 +389,7 @@ export default function AdminScholarshipsPage() {
       </Card>
 
       {/* Add Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => { setIsAddDialogOpen(open); if (!open) resetForm(); }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Tambah Beasiswa Baru</DialogTitle>
@@ -225,75 +397,71 @@ export default function AdminScholarshipsPage() {
               Masukkan informasi program beasiswa
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Judul *</Label>
-              <Input
-                id="title"
-                placeholder="Nama program beasiswa"
-                value={newScholarship.title}
-                onChange={(e) => setNewScholarship({ ...newScholarship, title: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi *</Label>
-              <Textarea
-                id="description"
-                placeholder="Deskripsi program beasiswa..."
-                rows={3}
-                value={newScholarship.description}
-                onChange={(e) => setNewScholarship({ ...newScholarship, description: e.target.value })}
-              />
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="requirements">Persyaratan</Label>
-                <Textarea
-                  id="requirements"
-                  placeholder="Pisahkan dengan baris baru..."
-                  rows={4}
-                  value={newScholarship.requirements}
-                  onChange={(e) => setNewScholarship({ ...newScholarship, requirements: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="benefits">Keuntungan</Label>
-                <Textarea
-                  id="benefits"
-                  placeholder="Pisahkan dengan baris baru..."
-                  rows={4}
-                  value={newScholarship.benefits}
-                  onChange={(e) => setNewScholarship({ ...newScholarship, benefits: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="deadline">Deadline</Label>
-                <Input
-                  id="deadline"
-                  placeholder="31 Desember 2024"
-                  value={newScholarship.deadline}
-                  onChange={(e) => setNewScholarship({ ...newScholarship, deadline: e.target.value })}
-                />
-              </div>
-              <div className="flex items-center justify-between pt-6">
-                <div>
-                  <Label>Status</Label>
-                  <p className="text-xs text-muted-foreground">Aktifkan beasiswa</p>
-                </div>
-                <Switch
-                  checked={newScholarship.isActive}
-                  onCheckedChange={(checked) => setNewScholarship({ ...newScholarship, isActive: checked })}
-                />
-              </div>
-            </div>
-          </div>
+          <ScholarshipForm />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => { setIsAddDialogOpen(false); resetForm(); }}>
               Batal
             </Button>
-            <Button onClick={handleAdd}>Simpan</Button>
+            <Button onClick={handleAdd} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : 'Simpan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) resetForm(); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Beasiswa</DialogTitle>
+            <DialogDescription>
+              Perbarui informasi program beasiswa
+            </DialogDescription>
+          </DialogHeader>
+          <ScholarshipForm />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); resetForm(); }}>
+              Batal
+            </Button>
+            <Button onClick={handleUpdate} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : 'Simpan Perubahan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Beasiswa</DialogTitle>
+            <DialogDescription>
+              Apakah Anda yakin ingin menghapus beasiswa "{deletingScholarship?.title}"? 
+              Tindakan ini tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Menghapus...
+                </>
+              ) : 'Hapus'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
