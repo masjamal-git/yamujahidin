@@ -161,3 +161,18 @@ model Donation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Videos (YouTube embeds)
+model Video {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  youtubeUrl  String   // Full YouTube URL
+  youtubeId   String?  // Extracted YouTube video ID
+  thumbnail   String?  // YouTube thumbnail URL
+  category    String   @default("umum") // umum, kegiatan, prestasi, pendidikan
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
