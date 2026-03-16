@@ -94,6 +94,8 @@ interface Settings {
   video_2_title: string
   video_3_url: string
   video_3_title: string
+  video_4_url: string
+  video_4_title: string
 }
 
 // Navigation items
@@ -278,7 +280,7 @@ export default function Home() {
   const getVideosFromSettings = () => {
     if (!settings) return []
     const videos = []
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 4; i++) {
       const urlKey = `video_${i}_url` as keyof Settings
       const titleKey = `video_${i}_title` as keyof Settings
       const url = settings[urlKey] as string
