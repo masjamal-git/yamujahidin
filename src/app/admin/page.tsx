@@ -94,7 +94,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@yalmuja.sch.id"
+                  placeholder="@yalmuja.sch.id"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -135,10 +135,7 @@ export default function AdminLoginPage() {
               )}
             </Button>
           </form>
-          <div className="mt-6 pt-6 border-t text-center text-sm text-muted-foreground">
-            <p>Demo login:</p>
-            <p className="font-mono">admin@yalmuja.sch.id / admin123</p>
-          </div>
+          
         </CardContent>
       </Card>
     </div>
