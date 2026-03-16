@@ -1254,12 +1254,12 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
                     <CardHeader>
                       <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
                         <Gift className="h-6 w-6" />
                       </div>
-                      <CardTitle className="text-lg">{item.title}</CardTitle>
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">{item.title}</CardTitle>
                       <CardDescription className="line-clamp-2">
                         {item.description}
                       </CardDescription>
@@ -1284,10 +1284,12 @@ export default function Home() {
                       )}
                     </CardContent>
                     <CardFooter>
-                      <Button variant="outline" className="w-full">
-                        Lihat Detail
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
+                      <Link href={`/beasiswa/${item.slug}`} className="w-full">
+                        <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          Lihat Detail
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
                     </CardFooter>
                   </Card>
                 </motion.div>
