@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Save, Loader2, Building, Phone, Mail, Globe, MessageCircle, GraduationCap } from 'lucide-react'
+import { Save, Loader2, Building, Phone, Mail, Globe, MessageCircle, GraduationCap, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 
 interface Settings {
@@ -26,6 +27,12 @@ interface Settings {
   profile_history: string
   ppdb_academic_year: string
   ppdb_is_open: string
+  video_1_url: string
+  video_1_title: string
+  video_2_url: string
+  video_2_title: string
+  video_3_url: string
+  video_3_title: string
 }
 
 export default function AdminSettingsPage() {
@@ -45,6 +52,12 @@ export default function AdminSettingsPage() {
     profile_history: '',
     ppdb_academic_year: '2024/2025',
     ppdb_is_open: 'true',
+    video_1_url: '',
+    video_1_title: '',
+    video_2_url: '',
+    video_2_title: '',
+    video_3_url: '',
+    video_3_title: '',
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -76,13 +89,19 @@ export default function AdminSettingsPage() {
     
     try {
       // Save each setting
-      const updates = Object.entries(settings).map(([key, value]) =>
-        fetch('/api/admin/settings', {
+      const updates = Object.entries(settings).map(([key, value]) => {
+        let group = 'general'
+        if (key.startsWith('ppdb_')) group = 'ppdb'
+        else if (key.startsWith('profile_')) group = 'profile'
+        else if (key.startsWith('video_')) group = 'video'
+        else if (key.includes('_url')) group = 'social'
+        
+        return fetch('/api/admin/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key, value, group: key.startsWith('ppdb_') ? 'ppdb' : key.startsWith('profile_') ? 'profile' : key.includes('_url') ? 'social' : 'general' }),
+          body: JSON.stringify({ key, value, group }),
         })
-      )
+      })
       
       await Promise.all(updates)
       toast.success('Pengaturan berhasil disimpan')
@@ -124,12 +143,13 @@ export default function AdminSettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="general">Umum</TabsTrigger>
           <TabsTrigger value="contact">Kontak</TabsTrigger>
           <TabsTrigger value="social">Media Sosial</TabsTrigger>
           <TabsTrigger value="profile">Profil</TabsTrigger>
           <TabsTrigger value="ppdb">PPDB</TabsTrigger>
+          <TabsTrigger value="video">Video</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -352,6 +372,106 @@ export default function AdminSettingsPage() {
                   Jika ditutup, form pendaftaran tidak akan ditampilkan
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="video">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Video YouTube
+              </CardTitle>
+              <CardDescription>
+                Tambahkan 3 video YouTube untuk ditampilkan di homepage
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Video 1 */}
+              <div className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Video 1</Badge>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video_1_title">Judul Video</Label>
+                    <Input
+                      id="video_1_title"
+                      placeholder="Judul video"
+                      value={settings.video_1_title}
+                      onChange={(e) => setSettings({ ...settings, video_1_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video_1_url">URL YouTube</Label>
+                    <Input
+                      id="video_1_url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      value={settings.video_1_url}
+                      onChange={(e) => setSettings({ ...settings, video_1_url: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Video 2 */}
+              <div className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Video 2</Badge>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video_2_title">Judul Video</Label>
+                    <Input
+                      id="video_2_title"
+                      placeholder="Judul video"
+                      value={settings.video_2_title}
+                      onChange={(e) => setSettings({ ...settings, video_2_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video_2_url">URL YouTube</Label>
+                    <Input
+                      id="video_2_url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      value={settings.video_2_url}
+                      onChange={(e) => setSettings({ ...settings, video_2_url: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Video 3 */}
+              <div className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Video 3</Badge>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="video_3_title">Judul Video</Label>
+                    <Input
+                      id="video_3_title"
+                      placeholder="Judul video"
+                      value={settings.video_3_title}
+                      onChange={(e) => setSettings({ ...settings, video_3_title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video_3_url">URL YouTube</Label>
+                    <Input
+                      id="video_3_url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      value={settings.video_3_url}
+                      onChange={(e) => setSettings({ ...settings, video_3_url: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Masukkan URL YouTube lengkap, contoh: https://www.youtube.com/watch?v=xxxxx atau https://youtu.be/xxxxx
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
